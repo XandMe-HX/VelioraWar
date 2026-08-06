@@ -93,20 +93,23 @@ public final class PlayerListener implements Listener {
     public void onTeleport(PlayerTeleportEvent event) {
         Player player = event.getPlayer();
         Arena arena = matches.arena(player.getUniqueId()).orElse(null);
-        if (arena == null || matches.consumeInternalTeleport(player.getUniqueId())) return;
-        if (event.getTo() == null || !arena.region().contains(event.getTo())) {
-            event.setCancelled(true);
-            messages.send(player, "outside-arena");
-        }
+        if (arena == null) return;
+
+        // Teleport yang dipanggil oleh VelioraWar (spawn, void, hasil match) harus tetap jalan.
+        if (matches.consumeInternalTeleport(player.getUniqueId())) return;
+
+        // Selama berada dalam war, pemain tidak boleh memakai /tp, /home, /spawn,
+        // teleport plugin lain, ender pearl, atau cara teleport lain untuk kabur.
+        // Semua perpindahan lokasi war hanya dilakukan lewat MatchManager.
+        if (!configs.config().getBoolean("war-lock.block-external-teleport", true)) return;
+        event.setCancelled(true);
+        messages.send(player, "teleport-blocked");
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onCommand(PlayerCommandPreprocessEvent event) {
-        if (event.getMessage().toLowerCase().startsWith("/vgwar")
-                || event.getMessage().toLowerCase().startsWith("/war")
-                || event.getMessage().toLowerCase().startsWith("/vw")) return;
         Arena arena = matches.arena(event.getPlayer().getUniqueId()).orElse(null);
-        if (arena != null && !arena.flag(ArenaFlag.ALLOW_COMMAND)) {
+        if (arena != null && configs.config().getBoolean("war-lock.block-commands", true)) {
             event.setCancelled(true);
             messages.send(event.getPlayer(), "command-blocked");
         }
