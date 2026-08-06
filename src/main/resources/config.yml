@@ -32,6 +32,14 @@ queue:
   # Batas antrean per kombinasi mode dan ukuran
   max-size: 100
 
+# Kunci fokus saat player sudah masuk aktivitas war, termasuk saat countdown dan All Mode.
+# Teleport internal VelioraWar (spawn, void, selesai match) selalu tetap diizinkan.
+war-lock:
+  # Blok seluruh command player: /tp, /home, /spawn, /msg, /vgwar, dan command plugin lain.
+  block-commands: true
+  # Blok teleport dari luar plugin: command, plugin lain, ender pearl, chorus fruit, dan sejenisnya.
+  block-external-teleport: true
+
 void:
   # Pemain yang jatuh di bawah batas ini dianggap tereliminasi
   enabled: true
