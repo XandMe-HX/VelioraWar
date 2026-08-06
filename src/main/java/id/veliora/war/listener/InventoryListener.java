@@ -6,6 +6,7 @@ import id.veliora.war.arena.ArenaManager;
 import id.veliora.war.cooldown.CooldownManager;
 import id.veliora.war.gui.FlagGui;
 import id.veliora.war.gui.GuideGui;
+import id.veliora.war.gui.GuiHolder;
 import id.veliora.war.gui.MainMenuGui;
 import id.veliora.war.gui.ModeSelectGui;
 import id.veliora.war.gui.RefillGui;
@@ -24,6 +25,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 
 import java.util.Map;
 
@@ -61,9 +63,14 @@ public final class InventoryListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onClick(InventoryClickEvent event) {
+        if (!(event.getView().getTopInventory().getHolder(false) instanceof GuiHolder)) return;
+
+        // Always lock our top inventory. This also closes shift-click, number-key,
+        // double-click, collect-to-cursor, hotbar-swap and empty-slot exploits.
+        event.setCancelled(true);
+        if (event.getRawSlot() >= event.getView().getTopInventory().getSize()) return;
         String action = ItemBuilder.action(event.getCurrentItem());
         if (action == null) return;
-        event.setCancelled(true);
         if (!(event.getWhoClicked() instanceof Player player)) return;
         long guiCooldown = configs.config().getLong("cooldowns.gui-milliseconds", 250);
         if (!cooldowns.tryUse(player.getUniqueId(), "gui", guiCooldown)) return;
@@ -97,6 +104,13 @@ public final class InventoryListener implements Listener {
             case "refill" -> claimRefill(player, parts[1]);
             default -> { }
         }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onDrag(InventoryDragEvent event) {
+        if (!(event.getView().getTopInventory().getHolder(false) instanceof GuiHolder)) return;
+        int topSize = event.getView().getTopInventory().getSize();
+        if (event.getRawSlots().stream().anyMatch(slot -> slot < topSize)) event.setCancelled(true);
     }
 
     private void toggleFlag(Player player, String[] parts) {

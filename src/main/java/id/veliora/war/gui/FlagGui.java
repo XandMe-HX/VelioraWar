@@ -21,7 +21,7 @@ public final class FlagGui {
         int size = configs.file("gui.yml").getInt("flag.size", 54);
         String title = configs.file("gui.yml").getString("flag.title", "&8Flag Arena")
                 .replace("{arena}", arena.id());
-        Inventory inventory = Bukkit.createInventory(null, size, TextUtil.component(title));
+        Inventory inventory = Bukkit.createInventory(new GuiHolder(), size, TextUtil.component(title));
         MainMenuGui.fill(inventory, Material.matchMaterial(configs.file("gui.yml").getString("flag.filler", "GRAY_STAINED_GLASS_PANE")));
         int slot = 10;
         for (ArenaFlag flag : ArenaFlag.values()) {

@@ -21,7 +21,7 @@ public final class TeamSelectGui {
         int inventorySize = configs.file("gui.yml").getInt("team.size", 27);
         String title = configs.file("gui.yml").getString("team.title", "&8Pilih Team")
                 .replace("{mode}", mode.id()).replace("{size}", size.id());
-        Inventory inventory = Bukkit.createInventory(null, inventorySize, TextUtil.component(title));
+        Inventory inventory = Bukkit.createInventory(new GuiHolder(), inventorySize, TextUtil.component(title));
         MainMenuGui.fill(inventory, Material.matchMaterial(configs.file("gui.yml").getString("team.filler", "BLACK_STAINED_GLASS_PANE")));
         inventory.setItem(configs.file("gui.yml").getInt("team.red-slot", 11),
                 new ItemBuilder(Material.RED_WOOL).name("&c&lTEAM MERAH")

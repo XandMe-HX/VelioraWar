@@ -16,7 +16,7 @@ public final class GuideGui {
     }
 
     public void open(Player player) {
-        Inventory inventory = Bukkit.createInventory(null, configs.file("gui.yml").getInt("guide.size", 27),
+        Inventory inventory = Bukkit.createInventory(new GuiHolder(), configs.file("gui.yml").getInt("guide.size", 27),
                 TextUtil.component(configs.file("gui.yml").getString("guide.title", "&8Panduan VelioraWar")));
         MainMenuGui.fill(inventory, Material.matchMaterial(configs.file("gui.yml").getString("guide.filler", "LIGHT_BLUE_STAINED_GLASS_PANE")));
         inventory.setItem(10, new ItemBuilder(Material.IRON_SWORD).name("&bDuel dan Team")

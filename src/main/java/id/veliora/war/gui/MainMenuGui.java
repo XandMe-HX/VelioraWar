@@ -28,7 +28,7 @@ public final class MainMenuGui {
 
     public void open(Player player) {
         int size = configs.file("gui.yml").getInt("main.size", 27);
-        Inventory inventory = Bukkit.createInventory(null, size,
+        Inventory inventory = Bukkit.createInventory(new GuiHolder(), size,
                 TextUtil.component(configs.file("gui.yml").getString("main.title", "&8VelioraWar")));
         fill(inventory, Material.matchMaterial(configs.file("gui.yml").getString("main.filler", "BLACK_STAINED_GLASS_PANE")));
         for (MatchMode mode : MatchMode.values()) {
