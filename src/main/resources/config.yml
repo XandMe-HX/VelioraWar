@@ -1,1 +1,86 @@
+# ==============================================
+# VelioraWar - konfigurasi utama
+# Semua durasi bertipe detik kecuali ada keterangan lain
+# Jalankan /vgwar reload setelah mengubah file ini
+# ==============================================
 
+settings:
+  # Bahasa internal plugin. Saat ini tersedia: id
+  locale: id
+  # Kalau true, semua perubahan arena langsung disimpan ke arenas.yml
+  auto-save-arena: true
+  # Interval pemeriksaan item ilegal. 20 ticks = 1 detik
+  illegal-item-scan-ticks: 20
+
+match:
+  # Durasi maksimal duel/team match
+  duration-seconds: 600
+  # Durasi hitung mundur sebelum pemain boleh bergerak
+  countdown-seconds: 4
+  # Match otomatis mulai saat kedua team penuh
+  require-full-teams: true
+  # Damage teman satu team dimatikan
+  friendly-fire: false
+  # Saat waktu habis, total damage terbesar menang
+  timeout-winner-by-damage: true
+  # Waktu sebelum pemain dikembalikan ke warp setelah selesai
+  end-delay-seconds: 3
+
+queue:
+  # Masukkan pemain ke antrean saat semua arena yang cocok sedang dipakai
+  enabled: true
+  # Batas antrean per kombinasi mode dan ukuran
+  max-size: 100
+
+void:
+  # Pemain yang jatuh di bawah batas ini dianggap tereliminasi
+  enabled: true
+  y-level: -64.0
+  count-as-death: true
+
+cooldowns:
+  # Jeda klik GUI untuk mencegah spam packet
+  gui-milliseconds: 250
+  # Jeda join setelah keluar atau selesai bermain
+  join-seconds: 3
+  # Refill hanya bisa diambil satu kali per durasi ini
+  refill-seconds: 60
+  # Cooldown sementara kalau dikeluarkan oleh Cheat Guard
+  cheat-kick-seconds: 86400
+
+anti-cheat:
+  enabled: true
+  # Hanya deteksi refill totem otomatis, bukan kecepatan klik PvP umum
+  auto-totem:
+    enabled: true
+    # Offhand yang terisi tanpa input manual di bawah durasi ini dianggap mencurigakan
+    min-refill-milliseconds: 150
+    # Jumlah pelanggaran sebelum dikeluarkan dari aktivitas war
+    max-strikes: 3
+    # Jangan ban server otomatis agar false positive tidak menghukum player permanen
+    server-auto-ban: false
+  illegal-items:
+    enabled: true
+    # Item yang tidak berasal dari loadout aktif akan dihapus dari inventory war
+    remove: true
+
+protection:
+  # Block arena tidak hancur oleh crystal, anchor, TNT, creeper, dan ledakan lain
+  explosion-block-damage: false
+  # Damage ledakan ke entity/player tetap aktif untuk CPVP
+  explosion-entity-damage: true
+  # Pemain di luar aktivitas war tidak bisa mengubah arena
+  block-outsiders: true
+  # Semua block yang berubah saat match dikembalikan setelah selesai
+  restore-temporary-blocks: true
+
+npc:
+  # NPC refill menggunakan Villager bawaan sehingga tidak wajib Citizens
+  name: '&e&l[ REFIL ITEMS ]'
+  hologram: '&b&lᴄʟɪᴄᴋ ᴛᴏ ʀᴇꜰɪʟ'
+  entity-type: VILLAGER
+  invulnerable: true
+  silent: true
+
+# Warp utama disimpan otomatis lewat /vgwar setwarp
+warp: {}

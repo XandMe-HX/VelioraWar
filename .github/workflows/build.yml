@@ -1,1 +1,35 @@
+name: Build VelioraWar
 
+on:
+  push:
+    branches: [clean]
+  pull_request:
+    branches: [clean]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Build with Maven
+        run: mvn --batch-mode --no-transfer-progress clean verify
+
+      - name: Upload plugin JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: VelioraWar
+          path: target/VelioraWar-*.jar
+          if-no-files-found: error

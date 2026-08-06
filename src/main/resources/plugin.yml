@@ -1,1 +1,21 @@
+name: VelioraWar
+version: '${project.version}'
+main: id.veliora.war.VelioraWarPlugin
+api-version: '1.21'
+author: XandMe
+description: PvP arena minigame untuk Veliora Gardens
+website: https://github.com/XandMe-HX/VelioraWar
 
+commands:
+  vgwar:
+    description: Membuka menu dan mengelola VelioraWar
+    usage: /vgwar
+    aliases: [war, vw]
+
+permissions:
+  veliorawar.use:
+    description: Membuka GUI VelioraWar
+    default: true
+  veliorawar.admin:
+    description: Mengelola arena dan konfigurasi VelioraWar
+    default: op
