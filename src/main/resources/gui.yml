@@ -1,1 +1,52 @@
+# Tampilan seluruh GUI. Slot dimulai dari 0.
+main:
+  title: '&8VelioraWar • Pilih Mode'
+  size: 27
+  filler: BLACK_STAINED_GLASS_PANE
+  mode-slots:
+    sword_duel: 10
+    mace_pvp: 12
+    cpvp: 14
+    all_mode: 16
+  guide-slot: 22
+  leave-slot: 26
 
+size:
+  title: '&8Pilih Ukuran • {mode}'
+  size: 27
+  filler: GRAY_STAINED_GLASS_PANE
+  slots:
+    1vs1: 10
+    2vs2: 12
+    3vs3: 14
+    4vs4: 16
+
+team:
+  title: '&8Pilih Team • {mode} {size}'
+  size: 27
+  filler: BLACK_STAINED_GLASS_PANE
+  red-slot: 11
+  green-slot: 15
+
+all-mode-confirm:
+  title: '&8Masuk All Mode?'
+  size: 27
+  filler: BLACK_STAINED_GLASS_PANE
+  cancel-slot: 11
+  join-slot: 15
+
+flag:
+  title: '&8Flag Arena • {arena}'
+  size: 54
+  filler: GRAY_STAINED_GLASS_PANE
+
+refill:
+  title: '&8Refill Items'
+  size: 27
+  filler: BLACK_STAINED_GLASS_PANE
+  claim-slot: 13
+
+guide:
+  title: '&8Panduan VelioraWar'
+  size: 27
+  filler: LIGHT_BLUE_STAINED_GLASS_PANE

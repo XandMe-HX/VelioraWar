@@ -1,1 +1,97 @@
+# =========================================================
+# Loadout tiap mode
+# slot: 0-35, HELMET, CHEST, LEGS, BOOTS, atau OFFHAND
+# enchantments: NAMA_ENCHANT:LEVEL
+# potion-effects: JENIS:DURASI_TICK:AMPLIFIER
+# 20 tick = 1 detik, amplifier 0 = level I
+# =========================================================
 
+modes:
+  sword_duel:
+    display-name: '&b&lSWORD DUEL'
+    icon: DIAMOND_SWORD
+    description:
+      - '&7Pertarungan pedang klasik'
+      - '&7dengan block dan potion'
+    items:
+      helmet: {material: NETHERITE_HELMET, slot: HELMET, unbreakable: true, enchantments: [PROTECTION:4, UNBREAKING:3]}
+      chest: {material: NETHERITE_CHESTPLATE, slot: CHEST, unbreakable: true, enchantments: [PROTECTION:4, UNBREAKING:3]}
+      legs: {material: NETHERITE_LEGGINGS, slot: LEGS, unbreakable: true, enchantments: [PROTECTION:4, UNBREAKING:3]}
+      boots: {material: NETHERITE_BOOTS, slot: BOOTS, unbreakable: true, enchantments: [PROTECTION:4, FEATHER_FALLING:4, UNBREAKING:3]}
+      sword: {material: NETHERITE_SWORD, slot: 0, unbreakable: true, enchantments: [SHARPNESS:5, UNBREAKING:3]}
+      axe: {material: NETHERITE_AXE, slot: 1, unbreakable: true, enchantments: [SHARPNESS:5, UNBREAKING:3]}
+      blocks: {material: COBBLESTONE, amount: 64, slot: 2}
+      totem: {material: TOTEM_OF_UNDYING, slot: OFFHAND}
+      speed: {material: SPLASH_POTION, amount: 2, slot: 3, display-name: '&bSpeed II', potion-color: '55FFFF', potion-effects: [SPEED:3600:1]}
+      strength: {material: SPLASH_POTION, amount: 2, slot: 4, display-name: '&cStrength II', potion-color: 'FF5555', potion-effects: [STRENGTH:3600:1]}
+      heal: {material: SPLASH_POTION, amount: 8, slot: 5, display-name: '&dHeal II', potion-color: 'FF55FF', potion-effects: [INSTANT_HEALTH:1:1]}
+
+  mace_pvp:
+    display-name: '&d&lMACE PVP'
+    icon: MACE
+    description:
+      - '&7Mace, elytra, rocket, totem,'
+      - '&7sword, axe, dan potion lengkap'
+    items:
+      helmet: {material: NETHERITE_HELMET, slot: HELMET, unbreakable: true, enchantments: [PROTECTION:4, UNBREAKING:3]}
+      elytra: {material: ELYTRA, slot: CHEST, unbreakable: true, enchantments: [UNBREAKING:3, MENDING:1]}
+      chestplate: {material: NETHERITE_CHESTPLATE, slot: 8, unbreakable: true, enchantments: [PROTECTION:4, UNBREAKING:3]}
+      legs: {material: NETHERITE_LEGGINGS, slot: LEGS, unbreakable: true, enchantments: [PROTECTION:4, UNBREAKING:3]}
+      boots: {material: NETHERITE_BOOTS, slot: BOOTS, unbreakable: true, enchantments: [PROTECTION:4, FEATHER_FALLING:4, UNBREAKING:3]}
+      mace: {material: MACE, slot: 0, unbreakable: true, enchantments: [DENSITY:5, WIND_BURST:3, UNBREAKING:3]}
+      sword: {material: NETHERITE_SWORD, slot: 1, unbreakable: true, enchantments: [SHARPNESS:5, UNBREAKING:3]}
+      axe: {material: NETHERITE_AXE, slot: 2, unbreakable: true, enchantments: [SHARPNESS:5, UNBREAKING:3]}
+      rocket: {material: FIREWORK_ROCKET, amount: 64, slot: 3}
+      totem: {material: TOTEM_OF_UNDYING, slot: OFFHAND}
+      spare-totem: {material: TOTEM_OF_UNDYING, amount: 3, slot: 7}
+      speed: {material: SPLASH_POTION, amount: 2, slot: 4, display-name: '&bSpeed II', potion-color: '55FFFF', potion-effects: [SPEED:3600:1]}
+      strength: {material: SPLASH_POTION, amount: 2, slot: 5, display-name: '&cStrength II', potion-color: 'FF5555', potion-effects: [STRENGTH:3600:1]}
+      heal: {material: SPLASH_POTION, amount: 8, slot: 6, display-name: '&dHeal II', potion-color: 'FF55FF', potion-effects: [INSTANT_HEALTH:1:1]}
+
+  cpvp:
+    display-name: '&c&lCRYSTAL PVP'
+    icon: END_CRYSTAL
+    description:
+      - '&7Anchor dan crystal tetap memberi damage'
+      - '&7tetapi tidak menghancurkan map'
+    items:
+      helmet: {material: NETHERITE_HELMET, slot: HELMET, unbreakable: true, enchantments: [PROTECTION:4, BLAST_PROTECTION:4, UNBREAKING:3]}
+      chest: {material: NETHERITE_CHESTPLATE, slot: CHEST, unbreakable: true, enchantments: [PROTECTION:4, BLAST_PROTECTION:4, UNBREAKING:3]}
+      legs: {material: NETHERITE_LEGGINGS, slot: LEGS, unbreakable: true, enchantments: [PROTECTION:4, BLAST_PROTECTION:4, UNBREAKING:3]}
+      boots: {material: NETHERITE_BOOTS, slot: BOOTS, unbreakable: true, enchantments: [PROTECTION:4, BLAST_PROTECTION:4, FEATHER_FALLING:4, UNBREAKING:3]}
+      sword: {material: NETHERITE_SWORD, slot: 0, unbreakable: true, enchantments: [SHARPNESS:5, UNBREAKING:3]}
+      pickaxe: {material: NETHERITE_PICKAXE, slot: 1, unbreakable: true, enchantments: [EFFICIENCY:5, UNBREAKING:3]}
+      crystal: {material: END_CRYSTAL, amount: 64, slot: 2}
+      obsidian: {material: OBSIDIAN, amount: 64, slot: 3}
+      anchor: {material: RESPAWN_ANCHOR, amount: 64, slot: 4}
+      glowstone: {material: GLOWSTONE, amount: 64, slot: 5}
+      totem: {material: TOTEM_OF_UNDYING, slot: OFFHAND}
+      spare-totem: {material: TOTEM_OF_UNDYING, amount: 6, slot: 8}
+      speed: {material: SPLASH_POTION, amount: 2, slot: 6, display-name: '&bSpeed II', potion-color: '55FFFF', potion-effects: [SPEED:3600:1]}
+      strength: {material: SPLASH_POTION, amount: 2, slot: 7, display-name: '&cStrength II', potion-color: 'FF5555', potion-effects: [STRENGTH:3600:1]}
+      heal: {material: SPLASH_POTION, amount: 8, slot: 9, display-name: '&dHeal II', potion-color: 'FF55FF', potion-effects: [INSTANT_HEALTH:1:1]}
+
+  all_mode:
+    display-name: '&e&lALL MODE'
+    icon: SKELETON_SKULL
+    description:
+      - '&7Semua gaya PvP menjadi satu'
+      - '&7Mode bebas dengan NPC refill'
+    items:
+      helmet: {material: NETHERITE_HELMET, slot: HELMET, unbreakable: true, enchantments: [PROTECTION:4, BLAST_PROTECTION:4, UNBREAKING:3]}
+      chest: {material: NETHERITE_CHESTPLATE, slot: CHEST, unbreakable: true, enchantments: [PROTECTION:4, BLAST_PROTECTION:4, UNBREAKING:3]}
+      legs: {material: NETHERITE_LEGGINGS, slot: LEGS, unbreakable: true, enchantments: [PROTECTION:4, BLAST_PROTECTION:4, UNBREAKING:3]}
+      boots: {material: NETHERITE_BOOTS, slot: BOOTS, unbreakable: true, enchantments: [PROTECTION:4, BLAST_PROTECTION:4, FEATHER_FALLING:4, UNBREAKING:3]}
+      sword: {material: NETHERITE_SWORD, slot: 0, unbreakable: true, enchantments: [SHARPNESS:5, UNBREAKING:3]}
+      mace: {material: MACE, slot: 1, unbreakable: true, enchantments: [DENSITY:5, WIND_BURST:3, UNBREAKING:3]}
+      crystal: {material: END_CRYSTAL, amount: 64, slot: 2}
+      obsidian: {material: OBSIDIAN, amount: 64, slot: 3}
+      anchor: {material: RESPAWN_ANCHOR, amount: 64, slot: 4}
+      glowstone: {material: GLOWSTONE, amount: 64, slot: 5}
+      rocket: {material: FIREWORK_ROCKET, amount: 64, slot: 6}
+      elytra: {material: ELYTRA, slot: 7, unbreakable: true, enchantments: [UNBREAKING:3, MENDING:1]}
+      totem: {material: TOTEM_OF_UNDYING, slot: OFFHAND}
+      spare-totem: {material: TOTEM_OF_UNDYING, amount: 6, slot: 8}
+      speed: {material: SPLASH_POTION, amount: 2, slot: 9, display-name: '&bSpeed II', potion-color: '55FFFF', potion-effects: [SPEED:3600:1]}
+      strength: {material: SPLASH_POTION, amount: 2, slot: 10, display-name: '&cStrength II', potion-color: 'FF5555', potion-effects: [STRENGTH:3600:1]}
+      heal: {material: SPLASH_POTION, amount: 8, slot: 11, display-name: '&dHeal II', potion-color: 'FF55FF', potion-effects: [INSTANT_HEALTH:1:1]}
