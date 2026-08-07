@@ -28,7 +28,7 @@ public final class ModeSelectGui {
         int size = configs.file("gui.yml").getInt("size.size", 27);
         String title = configs.file("gui.yml").getString("size.title", "&8Pilih Ukuran")
                 .replace("{mode}", loadouts.displayName(mode));
-        Inventory inventory = Bukkit.createInventory(null, size, TextUtil.component(title));
+        Inventory inventory = Bukkit.createInventory(new GuiHolder(), size, TextUtil.component(title));
         MainMenuGui.fill(inventory, Material.matchMaterial(configs.file("gui.yml").getString("size.filler", "GRAY_STAINED_GLASS_PANE")));
         for (MatchSize matchSize : new MatchSize[]{MatchSize.ONE_VS_ONE, MatchSize.TWO_VS_TWO,
                 MatchSize.THREE_VS_THREE, MatchSize.FOUR_VS_FOUR}) {
@@ -49,7 +49,7 @@ public final class ModeSelectGui {
 
     private void openAllModeConfirm(Player player) {
         int size = configs.file("gui.yml").getInt("all-mode-confirm.size", 27);
-        Inventory inventory = Bukkit.createInventory(null, size,
+        Inventory inventory = Bukkit.createInventory(new GuiHolder(), size,
                 TextUtil.component(configs.file("gui.yml").getString("all-mode-confirm.title", "&8Masuk All Mode?")));
         MainMenuGui.fill(inventory, Material.matchMaterial(configs.file("gui.yml").getString("all-mode-confirm.filler", "BLACK_STAINED_GLASS_PANE")));
         inventory.setItem(configs.file("gui.yml").getInt("all-mode-confirm.cancel-slot", 11),

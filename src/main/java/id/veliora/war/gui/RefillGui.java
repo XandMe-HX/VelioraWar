@@ -22,7 +22,7 @@ public final class RefillGui {
 
     public void open(Player player, Arena arena) {
         int size = configs.file("gui.yml").getInt("refill.size", 27);
-        Inventory inventory = Bukkit.createInventory(null, size,
+        Inventory inventory = Bukkit.createInventory(new GuiHolder(), size,
                 TextUtil.component(configs.file("gui.yml").getString("refill.title", "&8Refill Items")));
         MainMenuGui.fill(inventory, Material.matchMaterial(configs.file("gui.yml").getString("refill.filler", "BLACK_STAINED_GLASS_PANE")));
         String key = "refill:" + arena.id();

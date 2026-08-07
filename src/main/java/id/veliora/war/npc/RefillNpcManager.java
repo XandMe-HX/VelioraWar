@@ -35,10 +35,17 @@ public final class RefillNpcManager implements NpcHook {
     }
 
     public void set(Arena arena, Location location) {
+        if (arena.refillNpcLocation() == null && configuredNpcCount() >= 2) {
+            throw new IllegalStateException("Maksimal hanya 2 NPC refill yang dapat dibuat");
+        }
         remove(arena.id());
         arena.refillNpcLocation(location);
         arenas.save();
         spawn(arena);
+    }
+
+    private long configuredNpcCount() {
+        return arenas.all().stream().filter(current -> current.refillNpcLocation() != null).count();
     }
 
     public void spawn(Arena arena) {

@@ -95,7 +95,10 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
                     configs.warp(player.getLocation());
                     messages.send(player, "warp-set");
                 }
-                case "set" -> set(player, args);
+                case "set" -> {
+                    if (args.length == 3 && args[1].equalsIgnoreCase("npc")) setNpcAtPlayer(player, args[2]);
+                    else set(player, args);
+                }
                 case "reset" -> reset(player, args);
                 case "flag" -> flag(player, args);
                 case "enable", "disable" -> toggle(player, args, sub.equals("enable"));
@@ -199,6 +202,18 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
         messages.send(player, "npc-set", Map.of("arena", arena.id()));
     }
 
+    private void setNpcAtPlayer(Player player, String type) {
+        if (!type.equalsIgnoreCase("refil") && !type.equalsIgnoreCase("refill")) {
+            throw new IllegalArgumentException("Gunakan: /vgwar set npc refil");
+        }
+        Arena arena = arenas.allMode().orElseThrow(() -> new IllegalArgumentException("Arena All Mode belum dibuat"));
+        if (!arena.region().contains(player.getLocation())) {
+            throw new IllegalStateException("NPC harus berada di dalam region arena");
+        }
+        npcs.set(arena, player.getLocation());
+        messages.send(player, "npc-set", Map.of("arena", arena.id()));
+    }
+
     private Arena arena(String[] args) {
         requireArgs(args, 2, "/vgwar " + args[0] + " <arena>");
         return arenas.get(args[1]).orElseThrow(() -> new IllegalArgumentException("Arena tidak ditemukan: " + args[1]));
@@ -216,8 +231,13 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
             suggestions.add("menu");
             if (sender.hasPermission("veliorawar.admin")) suggestions.addAll(List.of("help", "pos1", "pos2", "claim",
                     "delete", "list", "info", "setwarp", "set", "reset", "flag", "enable", "disable", "setnpc", "reload"));
-        } else if (args.length == 2 && List.of("delete", "info", "set", "reset", "flag", "enable", "disable", "setnpc").contains(args[0].toLowerCase())) {
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("set")) {
+            suggestions.add("npc");
             suggestions.addAll(arenas.ids());
+        } else if (args.length == 2 && List.of("delete", "info", "reset", "flag", "enable", "disable", "setnpc").contains(args[0].toLowerCase())) {
+            suggestions.addAll(arenas.ids());
+        } else if (args.length == 3 && args[0].equalsIgnoreCase("set") && args[1].equalsIgnoreCase("npc")) {
+            suggestions.add("refil");
         } else if (args.length == 3 && args[0].equalsIgnoreCase("set")) {
             suggestions.addAll(Arrays.stream(MatchMode.values()).map(MatchMode::id).toList());
             suggestions.addAll(List.of("1", "2"));
