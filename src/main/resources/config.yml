@@ -89,6 +89,8 @@ npc:
   entity-type: VILLAGER
   invulnerable: true
   silent: true
+  # Diatur melalui /vgwar setnpc 1 atau /vgwar setnpc 2. Tidak terikat arena.
+  locations: {}
 
 # Warp utama disimpan otomatis lewat /vgwar setwarp
 warp: {}

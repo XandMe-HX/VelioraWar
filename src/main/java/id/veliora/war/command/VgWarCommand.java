@@ -10,7 +10,6 @@ import id.veliora.war.match.MatchMode;
 import id.veliora.war.match.MatchSize;
 import id.veliora.war.match.MatchTeam;
 import id.veliora.war.npc.RefillNpcManager;
-import id.veliora.war.storage.ConfigManager;
 import id.veliora.war.storage.MessageManager;
 import id.veliora.war.util.TextUtil;
 import org.bukkit.Location;
@@ -31,7 +30,6 @@ import java.util.Map;
 public final class VgWarCommand implements CommandExecutor, TabCompleter {
     private final VelioraWarPlugin plugin;
     private final ArenaManager arenas;
-    private final ConfigManager configs;
     private final MessageManager messages;
     private final MainMenuGui menu;
     private final FlagGui flagGui;
@@ -39,11 +37,10 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
     private final MemberSubCommand member;
     private final AdminSubCommand admin = new AdminSubCommand();
 
-    public VgWarCommand(VelioraWarPlugin plugin, ArenaManager arenas, ConfigManager configs,
+    public VgWarCommand(VelioraWarPlugin plugin, ArenaManager arenas, id.veliora.war.storage.ConfigManager configs,
                         MessageManager messages, MainMenuGui menu, FlagGui flagGui, RefillNpcManager npcs) {
         this.plugin = plugin;
         this.arenas = arenas;
-        this.configs = configs;
         this.messages = messages;
         this.menu = menu;
         this.flagGui = flagGui;
@@ -86,21 +83,24 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
             return true;
         }
         try {
+            // Friendly spelling kept for administrators: /vgwar set npc 1
+            // The compact /vgwar setnpc 1 form remains supported as well.
+            if (sub.equals("set") && args.length >= 2 && args[1].equalsIgnoreCase("npc")) {
+                String[] npcArgs = {"setnpc", args.length >= 3 ? args[2] : ""};
+                setNpc(player, npcArgs);
+                return true;
+            }
             switch (sub) {
                 case "pos1", "pos2" -> setPosition(player, sub.equals("pos1") ? 1 : 2);
                 case "claim" -> claim(player, args);
                 case "delete" -> delete(player, args);
                 case "info" -> info(player, args);
-                case "setwarp", "setlobby" -> {
-                    configs.warp(player.getLocation());
-                    messages.send(player, "warp-set");
-                }
                 case "set" -> {
-                    if (args.length == 3 && args[1].equalsIgnoreCase("npc")) setNpcAtPlayer(player, args[2]);
-                    else set(player, args);
+                    set(player, args);
                 }
+                case "spawn" -> setSpawnHere(player, args);
                 case "reset" -> reset(player, args);
-                case "flag" -> flag(player, args);
+                case "flag" -> flag(player);
                 case "enable", "disable" -> toggle(player, args, sub.equals("enable"));
                 case "setnpc" -> setNpc(player, args);
                 default -> admin.sendHelp(player);
@@ -120,10 +120,26 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
     }
 
     private void claim(Player player, String[] args) {
-        requireArgs(args, 2, "/vgwar claim <arena>");
+        if (args.length < 2) {
+            player.sendMessage(TextUtil.component("&8&m---------------- &b&lDaftar Arena &8&m----------------"));
+            player.sendMessage(TextUtil.component("&f1. &bSword Duel"));
+            player.sendMessage(TextUtil.component("&f2. &dMace PvP"));
+            player.sendMessage(TextUtil.component("&f3. &cCrystal PvP"));
+            player.sendMessage(TextUtil.component("&f4. &eAll Mode"));
+            player.sendMessage(TextUtil.component("&7Set pos1 dan pos2 dulu, lalu pakai: &f/vgwar claim <1-4>"));
+            return;
+        }
+        MatchMode mode = fixedMode(args[1]);
         Arena arena = arenas.create(player, args[1]);
         if (arena == null) messages.send(player, "arena-exists");
-        else messages.send(player, "arena-created", Map.of("arena", arena.id()));
+        else {
+            // A single physical arena can host the 1v1–4v4 sizes selected by players.
+            arena.mode(mode);
+            arena.size(mode == MatchMode.ALL_MODE ? MatchSize.UNLIMITED : MatchSize.FOUR_VS_FOUR);
+            arenas.save();
+            messages.send(player, "arena-created", Map.of("arena", arenaLabel(arena.id())));
+            player.sendMessage(TextUtil.component("&7Berdiri di dalam claim, lalu set spawn: &f/vgwar spawn merah &7dan &f/vgwar spawn biru"));
+        }
     }
 
     private void delete(Player player, String[] args) {
@@ -177,8 +193,17 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
         messages.send(player, "spawns-reset", Map.of("arena", arena.id()));
     }
 
-    private void flag(Player player, String[] args) {
-        flagGui.open(player, arena(args));
+    private void setSpawnHere(Player player, String[] args) {
+        requireArgs(args, 2, "/vgwar spawn <merah|biru>");
+        Arena arena = arenaHere(player);
+        MatchTeam team = MatchTeam.from(args[1]).orElseThrow(() -> new IllegalArgumentException("Gunakan merah atau biru"));
+        if (team == MatchTeam.RED) arena.redSpawn(player.getLocation()); else arena.greenSpawn(player.getLocation());
+        arenas.save();
+        messages.send(player, "spawn-set", Map.of("arena", arenaLabel(arena.id()), "team", team.displayName()));
+    }
+
+    private void flag(Player player) {
+        flagGui.open(player, arenaHere(player));
     }
 
     private void toggle(Player player, String[] args, boolean enabled) {
@@ -195,23 +220,36 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
     }
 
     private void setNpc(Player player, String[] args) {
-        Arena arena = arena(args);
-        if (arena.mode() != MatchMode.ALL_MODE) throw new IllegalStateException("NPC refill khusus arena All Mode");
-        if (!arena.region().contains(player.getLocation())) throw new IllegalStateException("NPC harus berada di dalam region arena");
-        npcs.set(arena, player.getLocation());
-        messages.send(player, "npc-set", Map.of("arena", arena.id()));
+        requireArgs(args, 2, "/vgwar setnpc <1|2>");
+        int slot;
+        try { slot = Integer.parseInt(args[1]); } catch (NumberFormatException exception) { throw new IllegalArgumentException("Gunakan nomor NPC 1 atau 2"); }
+        if (slot < 1 || slot > 2) throw new IllegalArgumentException("NPC refill hanya tersedia nomor 1 atau 2");
+        npcs.set(slot, player.getLocation());
+        player.sendMessage(TextUtil.component("&aNPC refill nomor &f" + slot + " &aberhasil dibuat di lokasimu."));
     }
 
-    private void setNpcAtPlayer(Player player, String type) {
-        if (!type.equalsIgnoreCase("refil") && !type.equalsIgnoreCase("refill")) {
-            throw new IllegalArgumentException("Gunakan: /vgwar set npc refil");
-        }
-        Arena arena = arenas.allMode().orElseThrow(() -> new IllegalArgumentException("Arena All Mode belum dibuat"));
-        if (!arena.region().contains(player.getLocation())) {
-            throw new IllegalStateException("NPC harus berada di dalam region arena");
-        }
-        npcs.set(arena, player.getLocation());
-        messages.send(player, "npc-set", Map.of("arena", arena.id()));
+    private Arena arenaHere(Player player) {
+        return arenas.at(player.getLocation()).orElseThrow(() -> new IllegalStateException("Kamu harus berdiri di dalam claim arena terlebih dahulu"));
+    }
+
+    private MatchMode fixedMode(String id) {
+        return switch (id) {
+            case "1" -> MatchMode.SWORD_DUEL;
+            case "2" -> MatchMode.MACE_PVP;
+            case "3" -> MatchMode.CPVP;
+            case "4" -> MatchMode.ALL_MODE;
+            default -> throw new IllegalArgumentException("ID arena hanya 1 Sword, 2 Mace, 3 Crystal, atau 4 All Mode");
+        };
+    }
+
+    private String arenaLabel(String id) {
+        return switch (id) {
+            case "1" -> "1 • Sword Duel";
+            case "2" -> "2 • Mace PvP";
+            case "3" -> "3 • Crystal PvP";
+            case "4" -> "4 • All Mode";
+            default -> id;
+        };
     }
 
     private Arena arena(String[] args) {
@@ -229,15 +267,21 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
         List<String> suggestions = new ArrayList<>();
         if (args.length == 1) {
             suggestions.add("menu");
-            if (sender.hasPermission("veliorawar.admin")) suggestions.addAll(List.of("help", "pos1", "pos2", "claim",
-                    "delete", "list", "info", "setwarp", "set", "reset", "flag", "enable", "disable", "setnpc", "reload"));
+            if (sender.hasPermission("veliorawar.admin")) suggestions.addAll(List.of("help", "pos1", "pos2", "claim", "spawn",
+                    "delete", "list", "info", "set", "reset", "flag", "enable", "disable", "setnpc", "reload"));
         } else if (args.length == 2 && args[0].equalsIgnoreCase("set")) {
             suggestions.add("npc");
             suggestions.addAll(arenas.ids());
-        } else if (args.length == 2 && List.of("delete", "info", "reset", "flag", "enable", "disable", "setnpc").contains(args[0].toLowerCase())) {
-            suggestions.addAll(arenas.ids());
         } else if (args.length == 3 && args[0].equalsIgnoreCase("set") && args[1].equalsIgnoreCase("npc")) {
-            suggestions.add("refil");
+            suggestions.addAll(List.of("1", "2"));
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("setnpc")) {
+            suggestions.addAll(List.of("1", "2"));
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("claim")) {
+            suggestions.addAll(List.of("1", "2", "3", "4"));
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("spawn")) {
+            suggestions.addAll(List.of("merah", "biru"));
+        } else if (args.length == 2 && List.of("delete", "info", "reset", "enable", "disable").contains(args[0].toLowerCase())) {
+            suggestions.addAll(arenas.ids());
         } else if (args.length == 3 && args[0].equalsIgnoreCase("set")) {
             suggestions.addAll(Arrays.stream(MatchMode.values()).map(MatchMode::id).toList());
             suggestions.addAll(List.of("1", "2"));

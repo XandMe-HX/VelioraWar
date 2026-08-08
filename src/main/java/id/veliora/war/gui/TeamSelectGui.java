@@ -9,6 +9,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.meta.SkullMeta;
 
 public final class TeamSelectGui {
     private final ConfigManager configs;
@@ -18,7 +19,7 @@ public final class TeamSelectGui {
     }
 
     public void open(Player player, MatchMode mode, MatchSize size) {
-        int inventorySize = configs.file("gui.yml").getInt("team.size", 27);
+        int inventorySize = Math.max(54, configs.file("gui.yml").getInt("team.size", 54));
         String title = configs.file("gui.yml").getString("team.title", "&8Pilih Team")
                 .replace("{mode}", mode.id()).replace("{size}", size.id());
         Inventory inventory = Bukkit.createInventory(new GuiHolder(), inventorySize, TextUtil.component(title));
@@ -28,9 +29,14 @@ public final class TeamSelectGui {
                         .lore("&7Maksimal " + size.playersPerTeam() + " pemain", "&eKlik untuk bergabung")
                         .action("team:" + mode.id() + ":" + size.id() + ":red").build());
         inventory.setItem(configs.file("gui.yml").getInt("team.green-slot", 15),
-                new ItemBuilder(Material.LIME_WOOL).name("&a&lTEAM HIJAU")
+                new ItemBuilder(Material.BLUE_WOOL).name("&9&lTEAM BIRU")
                         .lore("&7Maksimal " + size.playersPerTeam() + " pemain", "&eKlik untuk bergabung")
                         .action("team:" + mode.id() + ":" + size.id() + ":green").build());
+        // Visual slots: empty members are barriers. The selected player will join on click.
+        for (int i = 0; i < size.playersPerTeam(); i++) {
+            inventory.setItem(27 + i, new ItemBuilder(Material.BARRIER).name("&cSlot Merah kosong").lore("&7Belum ada player").action("noop").build());
+            inventory.setItem(35 - i, new ItemBuilder(Material.BARRIER).name("&9Slot Biru kosong").lore("&7Belum ada player").action("noop").build());
+        }
         player.openInventory(inventory);
     }
 }

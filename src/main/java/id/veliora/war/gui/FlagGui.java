@@ -27,11 +27,49 @@ public final class FlagGui {
         for (ArenaFlag flag : ArenaFlag.values()) {
             if (slot % 9 == 8) slot += 2;
             boolean enabled = arena.flag(flag);
-            inventory.setItem(slot++, new ItemBuilder(enabled ? Material.LIME_DYE : Material.GRAY_DYE)
-                    .name((enabled ? "&a" : "&7") + flag.key())
+            inventory.setItem(slot++, new ItemBuilder(material(flag, enabled))
+                    .name((enabled ? "&a&l" : "&c&l") + display(flag))
                     .lore("&7Status: " + (enabled ? "&aON" : "&cOFF"), "&eKlik untuk mengubah")
                     .action("flag:" + arena.id() + ":" + flag.key()).build());
         }
         player.openInventory(inventory);
+    }
+
+    private Material material(ArenaFlag flag, boolean enabled) {
+        if (!enabled) return Material.BARRIER;
+        return switch (flag) {
+            case PVP -> Material.DIAMOND_SWORD;
+            case BLOCK_PLACE -> Material.BRICKS;
+            case BLOCK_BREAK -> Material.NETHERITE_PICKAXE;
+            case TEMPORARY_BLOCK -> Material.OBSIDIAN;
+            case EXPLOSION_DAMAGE, EXPLOSION_BLOCK_DAMAGE -> Material.END_CRYSTAL;
+            case VOID_TELEPORT -> Material.ENDER_PEARL;
+            case FALL_DAMAGE -> Material.FEATHER;
+            case ITEM_DROP -> Material.DROPPER;
+            case KEEP_INVENTORY -> Material.CHEST;
+            case ALLOW_TOTEM -> Material.TOTEM_OF_UNDYING;
+            case ALLOW_ELYTRA -> Material.ELYTRA;
+            case ALLOW_COMMAND -> Material.COMMAND_BLOCK;
+            case ANTI_ILLEGAL_ITEM -> Material.SHIELD;
+        };
+    }
+
+    private String display(ArenaFlag flag) {
+        return switch (flag) {
+            case PVP -> "PvP";
+            case BLOCK_PLACE -> "Pasang Block";
+            case BLOCK_BREAK -> "Hancurkan Block";
+            case TEMPORARY_BLOCK -> "Block Sementara";
+            case EXPLOSION_DAMAGE -> "Damage Ledakan";
+            case EXPLOSION_BLOCK_DAMAGE -> "Ledakan Hancurkan Map";
+            case VOID_TELEPORT -> "Void Teleport";
+            case FALL_DAMAGE -> "Fall Damage";
+            case ITEM_DROP -> "Buang Item";
+            case KEEP_INVENTORY -> "Simpan Inventory";
+            case ALLOW_TOTEM -> "Totem";
+            case ALLOW_ELYTRA -> "Elytra";
+            case ALLOW_COMMAND -> "Command Saat War";
+            case ANTI_ILLEGAL_ITEM -> "Anti Item Ilegal";
+        };
     }
 }

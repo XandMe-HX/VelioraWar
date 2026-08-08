@@ -11,6 +11,7 @@ import id.veliora.war.gui.MainMenuGui;
 import id.veliora.war.gui.ModeSelectGui;
 import id.veliora.war.gui.RefillGui;
 import id.veliora.war.gui.TeamSelectGui;
+import id.veliora.war.gui.WarItemsGui;
 import id.veliora.war.inventory.LoadoutManager;
 import id.veliora.war.match.MatchManager;
 import id.veliora.war.match.MatchMode;
@@ -20,6 +21,7 @@ import id.veliora.war.storage.ConfigManager;
 import id.veliora.war.storage.MessageManager;
 import id.veliora.war.util.ItemBuilder;
 import id.veliora.war.util.TimeUtil;
+import id.veliora.war.util.VaultUtil;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -42,11 +44,14 @@ public final class InventoryListener implements Listener {
     private final FlagGui flags;
     private final RefillGui refill;
     private final GuideGui guide;
+    private final WarItemsGui warItems;
+    private final id.veliora.war.storage.PlayerDataStorage playerData;
 
     public InventoryListener(ConfigManager configs, ArenaManager arenas, MessageManager messages,
                              MatchManager matches, LoadoutManager loadouts, CooldownManager cooldowns,
                              MainMenuGui main, ModeSelectGui modes, TeamSelectGui teams, FlagGui flags,
-                             RefillGui refill, GuideGui guide) {
+                             RefillGui refill, GuideGui guide, WarItemsGui warItems,
+                             id.veliora.war.storage.PlayerDataStorage playerData) {
         this.configs = configs;
         this.arenas = arenas;
         this.messages = messages;
@@ -59,6 +64,8 @@ public final class InventoryListener implements Listener {
         this.flags = flags;
         this.refill = refill;
         this.guide = guide;
+        this.warItems = warItems;
+        this.playerData = playerData;
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -77,6 +84,7 @@ public final class InventoryListener implements Listener {
 
         String[] parts = action.split(":");
         switch (parts[0]) {
+            case "party" -> modes.openParty(player);
             case "mode" -> MatchMode.from(parts[1]).ifPresent(mode -> modes.open(player, mode));
             case "size" -> {
                 MatchMode mode = MatchMode.from(parts[1]).orElse(null);
@@ -95,7 +103,12 @@ public final class InventoryListener implements Listener {
                 matches.joinAllMode(player);
             }
             case "all-cancel", "main" -> main.open(player);
-            case "guide" -> guide.open(player);
+            case "guide" -> sendGuide(player);
+            case "items" -> warItems.open(player);
+            case "upgrades" -> warItems.upgrades(player);
+            case "shop" -> warItems.shop(player);
+            case "collection" -> warItems.collection(player);
+            case "buy" -> buy(player, parts.length > 1 ? parts[1] : "");
             case "leave" -> {
                 player.closeInventory();
                 matches.leave(player, true);
@@ -109,8 +122,8 @@ public final class InventoryListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onDrag(InventoryDragEvent event) {
         if (!(event.getView().getTopInventory().getHolder(false) instanceof GuiHolder)) return;
-        int topSize = event.getView().getTopInventory().getSize();
-        if (event.getRawSlots().stream().anyMatch(slot -> slot < topSize)) event.setCancelled(true);
+        // A VelioraWar GUI never allows moving anything, including the player's bottom inventory.
+        event.setCancelled(true);
     }
 
     private void toggleFlag(Player player, String[] parts) {
@@ -139,5 +152,30 @@ public final class InventoryListener implements Listener {
         loadouts.apply(player, MatchMode.ALL_MODE);
         messages.send(player, "refill-ready");
         refill.open(player, arena);
+    }
+
+    private void sendGuide(Player player) {
+        player.closeInventory();
+        player.sendMessage(id.veliora.war.util.TextUtil.component("&8&m---------------- &b&lPanduan VelioraWar &8&m----------------"));
+        player.sendMessage(id.veliora.war.util.TextUtil.component("&f1. &7Pilih &bBuat Party&7, lalu pilih mode dan ukuran team."));
+        player.sendMessage(id.veliora.war.util.TextUtil.component("&f2. &7Masuk ke &cMerah &7atau &9Biru&7. Match mulai saat kedua team penuh."));
+        player.sendMessage(id.veliora.war.util.TextUtil.component("&f3. &7Buka &6War Items &7untuk membeli item atau upgrade enchant memakai Vault."));
+        player.sendMessage(id.veliora.war.util.TextUtil.component("&f4. &7Saat war: command, teleport, dan keluar arena diblokir."));
+    }
+
+    private void buy(Player player, String id) {
+        java.util.Map<String, Integer> prices = java.util.Map.ofEntries(
+                java.util.Map.entry("sharpness_1", 1000), java.util.Map.entry("sharpness_2", 5000), java.util.Map.entry("density_1", 10000),
+                java.util.Map.entry("mace", 10000), java.util.Map.entry("trident", 15000), java.util.Map.entry("elytra", 20000),
+                java.util.Map.entry("golden_apple", 3000), java.util.Map.entry("rocket", 1000), java.util.Map.entry("blocks", 5000),
+                java.util.Map.entry("potion", 4000), java.util.Map.entry("sword", 20000));
+        Integer price = prices.get(id);
+        if (price == null) return;
+        if (playerData.intValue(player.getUniqueId(), "war-items." + id, 0) > 0) { player.sendMessage(id.veliora.war.util.TextUtil.component("&eItem ini sudah kamu miliki.")); return; }
+        if (!VaultUtil.available()) { player.sendMessage(id.veliora.war.util.TextUtil.component("&cVault/Economy belum aktif di server.")); return; }
+        if (!VaultUtil.withdraw(player, price)) { player.sendMessage(id.veliora.war.util.TextUtil.component("&cSaldo kamu tidak cukup. Harga: &e" + price)); return; }
+        playerData.set(player.getUniqueId(), "war-items." + id, 1); playerData.save();
+        player.sendMessage(id.veliora.war.util.TextUtil.component("&aBerhasil membeli &f" + id + " &aseharga &e" + price));
+        warItems.open(player);
     }
 }

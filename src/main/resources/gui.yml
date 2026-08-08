@@ -3,12 +3,9 @@ main:
   title: '&8VelioraWar • Pilih Mode'
   size: 27
   filler: BLACK_STAINED_GLASS_PANE
-  mode-slots:
-    sword_duel: 10
-    mace_pvp: 12
-    cpvp: 14
-    all_mode: 16
-  guide-slot: 22
+  party-slot: 11
+  items-slot: 13
+  guide-slot: 15
   leave-slot: 26
 
 size:
@@ -23,7 +20,7 @@ size:
 
 team:
   title: '&8Pilih Team • {mode} {size}'
-  size: 27
+  size: 54
   filler: BLACK_STAINED_GLASS_PANE
   red-slot: 11
   green-slot: 15

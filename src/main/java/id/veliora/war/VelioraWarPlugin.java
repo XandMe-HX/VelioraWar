@@ -9,6 +9,7 @@ import id.veliora.war.gui.MainMenuGui;
 import id.veliora.war.gui.ModeSelectGui;
 import id.veliora.war.gui.RefillGui;
 import id.veliora.war.gui.TeamSelectGui;
+import id.veliora.war.gui.WarItemsGui;
 import id.veliora.war.inventory.InventoryManager;
 import id.veliora.war.inventory.LoadoutManager;
 import id.veliora.war.listener.BlockListener;
@@ -51,7 +52,7 @@ public final class VelioraWarPlugin extends JavaPlugin {
         messages = new MessageManager(configs);
         playerData = new PlayerDataStorage(configs);
         arenaManager = new ArenaManager(new ArenaStorage(configs));
-        loadouts = new LoadoutManager(configs);
+        loadouts = new LoadoutManager(configs, playerData);
         inventories = new InventoryManager(playerData);
         temporaryBlocks = new TemporaryBlockManager();
         cooldowns = new CooldownManager();
@@ -66,6 +67,7 @@ public final class VelioraWarPlugin extends JavaPlugin {
         FlagGui flagMenu = new FlagGui(configs);
         RefillGui refillMenu = new RefillGui(configs, cooldowns);
         GuideGui guideMenu = new GuideGui(configs);
+        WarItemsGui warItemsMenu = new WarItemsGui(playerData);
         refillNpcs = new RefillNpcManager(this, configs, arenaManager);
 
         registerCommand(new VgWarCommand(this, arenaManager, configs, messages,
@@ -78,7 +80,7 @@ public final class VelioraWarPlugin extends JavaPlugin {
         plugins.registerEvents(new DamageListener(arenaManager, matches), this);
         plugins.registerEvents(new ExplosionListener(arenaManager, explosions, temporaryBlocks), this);
         plugins.registerEvents(new InventoryListener(configs, arenaManager, messages, matches, loadouts,
-                cooldowns, mainMenu, modeMenu, teamMenu, flagMenu, refillMenu, guideMenu), this);
+                cooldowns, mainMenu, modeMenu, teamMenu, flagMenu, refillMenu, guideMenu, warItemsMenu, playerData), this);
         CheatGuardListener cheatGuard = new CheatGuardListener(this, configs, messages, matches, loadouts);
         plugins.registerEvents(cheatGuard, this);
         cheatGuard.start();

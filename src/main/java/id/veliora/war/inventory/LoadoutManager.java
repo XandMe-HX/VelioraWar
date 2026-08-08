@@ -2,6 +2,7 @@ package id.veliora.war.inventory;
 
 import id.veliora.war.match.MatchMode;
 import id.veliora.war.storage.ConfigManager;
+import id.veliora.war.storage.PlayerDataStorage;
 import id.veliora.war.util.TextUtil;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -23,10 +24,12 @@ import java.util.Set;
 
 public final class LoadoutManager {
     private final ConfigManager configs;
+    private final PlayerDataStorage playerData;
     private final EnumMap<MatchMode, Set<Material>> allowed = new EnumMap<>(MatchMode.class);
 
-    public LoadoutManager(ConfigManager configs) {
+    public LoadoutManager(ConfigManager configs, PlayerDataStorage playerData) {
         this.configs = configs;
+        this.playerData = playerData;
         rebuildAllowedMaterials();
     }
 
@@ -46,8 +49,32 @@ public final class LoadoutManager {
             ItemStack stack = createItem(section);
             place(player, stack, section.getString("slot", "0"));
         }
+        applyPurchasedItems(player);
         player.updateInventory();
     }
+
+    private void applyPurchasedItems(Player player) {
+        java.util.UUID uuid = player.getUniqueId();
+        if (owned(uuid, "mace")) player.getInventory().setItem(20, new ItemStack(Material.MACE));
+        if (owned(uuid, "trident")) player.getInventory().setItem(21, new ItemStack(Material.TRIDENT));
+        if (owned(uuid, "elytra")) player.getInventory().setItem(22, new ItemStack(Material.ELYTRA));
+        if (owned(uuid, "golden_apple")) player.getInventory().setItem(23, new ItemStack(Material.GOLDEN_APPLE, 8));
+        if (owned(uuid, "rocket")) player.getInventory().setItem(24, new ItemStack(Material.FIREWORK_ROCKET, 32));
+        if (owned(uuid, "blocks")) player.getInventory().setItem(25, new ItemStack(Material.OBSIDIAN, 32));
+        if (owned(uuid, "potion")) player.getInventory().setItem(26, new ItemStack(Material.SPLASH_POTION, 4));
+        if (owned(uuid, "sword")) player.getInventory().setItem(27, new ItemStack(Material.NETHERITE_SWORD));
+        int sharpness = owned(uuid, "sharpness_2") ? 2 : owned(uuid, "sharpness_1") ? 1 : 0;
+        int density = owned(uuid, "density_1") ? 1 : 0;
+        for (ItemStack stack : player.getInventory().getContents()) {
+            if (stack == null) continue;
+            ItemMeta meta = stack.getItemMeta();
+            if (stack.getType() == Material.NETHERITE_SWORD && sharpness > 0) meta.addEnchant(Enchantment.SHARPNESS, 5 + sharpness, true);
+            if (stack.getType() == Material.MACE && density > 0) meta.addEnchant(Enchantment.DENSITY, 5 + density, true);
+            stack.setItemMeta(meta);
+        }
+    }
+
+    private boolean owned(java.util.UUID uuid, String id) { return playerData.intValue(uuid, "war-items." + id, 0) > 0; }
 
     public boolean isAllowed(MatchMode mode, Material material) {
         return material == Material.AIR || allowed.getOrDefault(mode, Set.of()).contains(material);

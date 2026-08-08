@@ -89,11 +89,11 @@ public final class MatchManager {
             Optional<Arena> free = arenas.all().stream()
                     .filter(Arena::enabled)
                     .filter(arena -> arena.state() == ArenaState.WAITING)
-                    .filter(arena -> arena.mode() == mode && arena.size() == size)
+                    .filter(arena -> arena.mode() == mode)
                     .filter(arena -> !matchesByArena.containsKey(arena.id()))
                     .findFirst();
             if (free.isPresent()) {
-                match = new Match(free.get());
+                match = new Match(free.get(), size);
                 matchesByArena.put(free.get().id(), match);
                 free.get().state(ArenaState.PREPARING);
             }
