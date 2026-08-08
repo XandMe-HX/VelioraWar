@@ -5,6 +5,7 @@ import id.veliora.war.arena.Arena;
 import id.veliora.war.arena.ArenaManager;
 import id.veliora.war.storage.ConfigManager;
 import id.veliora.war.util.TextUtil;
+import id.veliora.war.util.LocationUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -32,6 +33,20 @@ public final class RefillNpcManager implements NpcHook {
                         || entity.getPersistentDataContainer().has(hologramKey))
                 .forEach(Entity::remove));
         arenas.all().stream().filter(arena -> arena.refillNpcLocation() != null).forEach(this::spawn);
+        for (int slot = 1; slot <= 2; slot++) {
+            Location location = LocationUtil.load(configs.config().getConfigurationSection("npc.locations." + slot));
+            if (location != null) spawn(location, "global-" + slot);
+        }
+    }
+
+    /** Global refill NPC: it is independent from a particular arena. */
+    public void set(int slot, Location location) {
+        remove("global-" + slot);
+        configs.config().set("npc.locations." + slot, null);
+        org.bukkit.configuration.ConfigurationSection section = configs.config().createSection("npc.locations." + slot);
+        LocationUtil.save(section, location);
+        VelioraWarPlugin.getInstance().saveConfig();
+        spawn(location, "global-" + slot);
     }
 
     public void set(Arena arena, Location location) {
@@ -51,6 +66,11 @@ public final class RefillNpcManager implements NpcHook {
     public void spawn(Arena arena) {
         Location location = arena.refillNpcLocation();
         if (location == null || location.getWorld() == null) return;
+        spawn(location, arena.id());
+    }
+
+    private void spawn(Location location, String id) {
+        if (location == null || location.getWorld() == null) return;
         Villager npc = location.getWorld().spawn(location, Villager.class, villager -> {
             villager.setAI(false);
             villager.setInvulnerable(configs.config().getBoolean("npc.invulnerable", true));
@@ -61,7 +81,7 @@ public final class RefillNpcManager implements NpcHook {
             villager.setProfession(Villager.Profession.WEAPONSMITH);
             villager.customName(TextUtil.component(configs.config().getString("npc.name", "&e&l[ REFIL ITEMS ]")));
             villager.setCustomNameVisible(true);
-            villager.getPersistentDataContainer().set(npcKey, PersistentDataType.STRING, arena.id());
+            villager.getPersistentDataContainer().set(npcKey, PersistentDataType.STRING, id);
         });
         location.getWorld().spawn(location.clone().add(0, 2.2, 0), ArmorStand.class, stand -> {
             stand.setInvisible(true);
@@ -70,7 +90,7 @@ public final class RefillNpcManager implements NpcHook {
             stand.setGravity(false);
             stand.customName(TextUtil.component(configs.config().getString("npc.hologram", "&b&lᴄʟɪᴄᴋ ᴛᴏ ʀᴇꜰɪʟ")));
             stand.setCustomNameVisible(true);
-            stand.getPersistentDataContainer().set(hologramKey, PersistentDataType.STRING, arena.id());
+            stand.getPersistentDataContainer().set(hologramKey, PersistentDataType.STRING, id);
         });
     }
 

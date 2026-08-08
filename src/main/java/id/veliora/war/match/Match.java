@@ -22,10 +22,10 @@ public final class Match {
     private BukkitTask timerTask;
     private int remainingSeconds;
 
-    public Match(Arena arena) {
+    public Match(Arena arena, MatchSize size) {
         this.arena = arena;
         this.mode = arena.mode();
-        this.size = arena.size();
+        this.size = size;
         teams.put(MatchTeam.RED, new LinkedHashSet<>());
         teams.put(MatchTeam.GREEN, new LinkedHashSet<>());
     }

@@ -47,6 +47,22 @@ public final class ModeSelectGui {
         player.openInventory(inventory);
     }
 
+    public void openParty(Player player) {
+        int size = configs.file("gui.yml").getInt("party.size", 27);
+        Inventory inventory = Bukkit.createInventory(new GuiHolder(), size, TextUtil.component("&8Buat Party • Pilih Mode"));
+        MainMenuGui.fill(inventory, Material.BLUE_STAINED_GLASS_PANE);
+        int[] slots = {10, 12, 14, 16};
+        int index = 0;
+        for (MatchMode mode : MatchMode.values()) {
+            Material icon = loadouts.icon(mode);
+            if (icon == null) icon = Material.BARRIER;
+            inventory.setItem(slots[index++], new ItemBuilder(icon).name(loadouts.displayName(mode))
+                    .lore(loadouts.description(mode)).action("mode:" + mode.id()).hideFlags().build());
+        }
+        inventory.setItem(22, new ItemBuilder(Material.ARROW).name("&fKembali").action("main").build());
+        player.openInventory(inventory);
+    }
+
     private void openAllModeConfirm(Player player) {
         int size = configs.file("gui.yml").getInt("all-mode-confirm.size", 27);
         Inventory inventory = Bukkit.createInventory(new GuiHolder(), size,

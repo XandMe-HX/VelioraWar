@@ -31,17 +31,15 @@ public final class MainMenuGui {
         Inventory inventory = Bukkit.createInventory(new GuiHolder(), size,
                 TextUtil.component(configs.file("gui.yml").getString("main.title", "&8VelioraWar")));
         fill(inventory, Material.matchMaterial(configs.file("gui.yml").getString("main.filler", "BLACK_STAINED_GLASS_PANE")));
-        for (MatchMode mode : MatchMode.values()) {
-            Material icon = loadouts.icon(mode);
-            if (icon == null) icon = Material.BARRIER;
-            List<String> lore = new ArrayList<>(loadouts.description(mode));
-            lore.add("");
-            lore.add("&eKlik untuk memilih");
-            ItemStack item = new ItemBuilder(icon).name(loadouts.displayName(mode)).lore(lore)
-                    .action("mode:" + mode.id()).hideFlags().build();
-            inventory.setItem(configs.file("gui.yml").getInt("main.mode-slots." + mode.id(), 10), item);
-        }
-        inventory.setItem(configs.file("gui.yml").getInt("main.guide-slot", 22),
+        inventory.setItem(configs.file("gui.yml").getInt("main.party-slot", 11),
+                new ItemBuilder(Material.NETHER_STAR).name("&b&lBUAT PARTY")
+                        .lore("&7Pilih mode, ukuran 1vs1 sampai 4vs4,", "&7lalu pilih Team Merah atau Biru.", "", "&eKlik untuk mulai memilih")
+                        .action("party").hideFlags().build());
+        inventory.setItem(configs.file("gui.yml").getInt("main.items-slot", 13),
+                new ItemBuilder(Material.CHEST).name("&6&lWAR ITEMS")
+                        .lore("&7Upgrade enchant, beli item PvP,", "&7dan lihat loadout milikmu.", "", "&eKlik untuk membuka")
+                        .action("items").hideFlags().build());
+        inventory.setItem(configs.file("gui.yml").getInt("main.guide-slot", 15),
                 new ItemBuilder(Material.BOOK).name("&b&lPANDUAN").lore("&7Cara bermain dan aturan", "&eKlik untuk membuka")
                         .action("guide").build());
         if (matches.isPlaying(player.getUniqueId())) {

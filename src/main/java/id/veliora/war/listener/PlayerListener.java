@@ -140,8 +140,11 @@ public final class PlayerListener implements Listener {
     public void onNpcClick(PlayerInteractEntityEvent event) {
         if (!npcs.isRefillNpc(event.getRightClicked())) return;
         event.setCancelled(true);
-        Arena arena = plugin.arenaManager().get(npcs.arenaId(event.getRightClicked())).orElse(null);
-        if (arena != null && matches.isInArena(event.getPlayer().getUniqueId(), arena)) refillGui.open(event.getPlayer(), arena);
+        Arena arena = matches.arena(event.getPlayer().getUniqueId()).orElse(null);
+        if (arena != null && arena.mode() == id.veliora.war.match.MatchMode.ALL_MODE
+                && matches.isInArena(event.getPlayer().getUniqueId(), arena)) {
+            refillGui.open(event.getPlayer(), arena);
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
