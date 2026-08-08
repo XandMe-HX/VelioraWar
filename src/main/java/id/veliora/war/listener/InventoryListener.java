@@ -20,6 +20,7 @@ import id.veliora.war.match.MatchTeam;
 import id.veliora.war.storage.ConfigManager;
 import id.veliora.war.storage.MessageManager;
 import id.veliora.war.util.ItemBuilder;
+import id.veliora.war.util.TextUtil;
 import id.veliora.war.util.TimeUtil;
 import id.veliora.war.util.VaultUtil;
 import org.bukkit.entity.Player;
@@ -156,11 +157,11 @@ public final class InventoryListener implements Listener {
 
     private void sendGuide(Player player) {
         player.closeInventory();
-        player.sendMessage(id.veliora.war.util.TextUtil.component("&8&m---------------- &b&lPanduan VelioraWar &8&m----------------"));
-        player.sendMessage(id.veliora.war.util.TextUtil.component("&f1. &7Pilih &bBuat Party&7, lalu pilih mode dan ukuran team."));
-        player.sendMessage(id.veliora.war.util.TextUtil.component("&f2. &7Masuk ke &cMerah &7atau &9Biru&7. Match mulai saat kedua team penuh."));
-        player.sendMessage(id.veliora.war.util.TextUtil.component("&f3. &7Buka &6War Items &7untuk membeli item atau upgrade enchant memakai Vault."));
-        player.sendMessage(id.veliora.war.util.TextUtil.component("&f4. &7Saat war: command, teleport, dan keluar arena diblokir."));
+        player.sendMessage(TextUtil.component("&8&m---------------- &b&lPanduan VelioraWar &8&m----------------"));
+        player.sendMessage(TextUtil.component("&f1. &7Pilih &bBuat Party&7, lalu pilih mode dan ukuran team."));
+        player.sendMessage(TextUtil.component("&f2. &7Masuk ke &cMerah &7atau &9Biru&7. Match mulai saat kedua team penuh."));
+        player.sendMessage(TextUtil.component("&f3. &7Buka &6War Items &7untuk membeli item atau upgrade enchant memakai Vault."));
+        player.sendMessage(TextUtil.component("&f4. &7Saat war: command, teleport, dan keluar arena diblokir."));
     }
 
     private void buy(Player player, String id) {
@@ -171,11 +172,11 @@ public final class InventoryListener implements Listener {
                 java.util.Map.entry("potion", 4000), java.util.Map.entry("sword", 20000));
         Integer price = prices.get(id);
         if (price == null) return;
-        if (playerData.intValue(player.getUniqueId(), "war-items." + id, 0) > 0) { player.sendMessage(id.veliora.war.util.TextUtil.component("&eItem ini sudah kamu miliki.")); return; }
-        if (!VaultUtil.available()) { player.sendMessage(id.veliora.war.util.TextUtil.component("&cVault/Economy belum aktif di server.")); return; }
-        if (!VaultUtil.withdraw(player, price)) { player.sendMessage(id.veliora.war.util.TextUtil.component("&cSaldo kamu tidak cukup. Harga: &e" + price)); return; }
+        if (playerData.intValue(player.getUniqueId(), "war-items." + id, 0) > 0) { player.sendMessage(TextUtil.component("&eItem ini sudah kamu miliki.")); return; }
+        if (!VaultUtil.available()) { player.sendMessage(TextUtil.component("&cVault/Economy belum aktif di server.")); return; }
+        if (!VaultUtil.withdraw(player, price)) { player.sendMessage(TextUtil.component("&cSaldo kamu tidak cukup. Harga: &e" + price)); return; }
         playerData.set(player.getUniqueId(), "war-items." + id, 1); playerData.save();
-        player.sendMessage(id.veliora.war.util.TextUtil.component("&aBerhasil membeli &f" + id + " &aseharga &e" + price));
+        player.sendMessage(TextUtil.component("&aBerhasil membeli &f" + id + " &aseharga &e" + price));
         warItems.open(player);
     }
 }
