@@ -3,6 +3,7 @@ package id.veliora.war.storage;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.util.UUID;
+import java.util.List;
 
 public final class PlayerDataStorage {
     private final ConfigManager configs;
@@ -25,6 +26,10 @@ public final class PlayerDataStorage {
 
     public String string(UUID uuid, String key) {
         return data().getString(path(uuid, key));
+    }
+
+    public List<String> stringList(UUID uuid, String key) {
+        return data().getStringList(path(uuid, key));
     }
 
     public long longValue(UUID uuid, String key, long fallback) {
