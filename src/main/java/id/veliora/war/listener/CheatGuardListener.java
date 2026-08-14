@@ -17,6 +17,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityResurrectEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -33,6 +34,7 @@ public final class CheatGuardListener implements Listener {
     private final Map<UUID, Long> poppedAt = new HashMap<>();
     private final Map<UUID, Long> manualMoveAt = new HashMap<>();
     private final Map<UUID, Integer> strikes = new HashMap<>();
+    private final Map<UUID, Long> lastStrikeAt = new HashMap<>();
     private BukkitTask scanner;
     private int tick;
 
@@ -103,13 +105,27 @@ public final class CheatGuardListener implements Listener {
         }
     }
 
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        UUID uuid = event.getPlayer().getUniqueId();
+        poppedAt.remove(uuid);
+        manualMoveAt.remove(uuid);
+        // Strikes are intentionally kept for the decay window, not forever.
+    }
+
     private void addStrike(Player player) {
-        int current = strikes.merge(player.getUniqueId(), 1, Integer::sum);
-        int maximum = configs.config().getInt("anti-cheat.auto-totem.max-strikes", 3);
+        UUID uuid = player.getUniqueId();
+        long now = System.currentTimeMillis();
+        long decayMillis = configs.config().getLong("anti-cheat.auto-totem.strike-decay-seconds", 600L) * 1000L;
+        if (now - lastStrikeAt.getOrDefault(uuid, 0L) > decayMillis) strikes.remove(uuid);
+        lastStrikeAt.put(uuid, now);
+        int current = strikes.merge(uuid, 1, Integer::sum);
+        int maximum = configs.config().getInt("anti-cheat.auto-totem.max-strikes", 5);
         messages.send(player, "auto-totem-warning", Map.of("strikes", Integer.toString(current), "max", Integer.toString(maximum)));
         plugin.getLogger().warning("Cheat Guard mendeteksi auto-totem: " + player.getName() + " (" + current + '/' + maximum + ")");
         if (current >= maximum) {
             strikes.remove(player.getUniqueId());
+            lastStrikeAt.remove(player.getUniqueId());
             matches.kickForCheat(player);
         }
     }
