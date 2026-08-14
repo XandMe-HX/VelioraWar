@@ -108,10 +108,20 @@ public final class PlayerListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onCommand(PlayerCommandPreprocessEvent event) {
-        Arena arena = matches.arena(event.getPlayer().getUniqueId()).orElse(null);
-        if (arena != null && configs.config().getBoolean("war-lock.block-commands", true)) {
+        Player player = event.getPlayer();
+        Arena arena = matches.arena(player.getUniqueId()).orElse(null);
+        if (arena == null) return;
+
+        // A player must always have one safe escape route from an activity.
+        String command = event.getMessage().trim().toLowerCase(java.util.Locale.ROOT);
+        if (command.equals("/vgwar leave") || command.equals("/vgwar keluar")) {
             event.setCancelled(true);
-            messages.send(event.getPlayer(), "command-blocked");
+            matches.leave(player, true);
+            return;
+        }
+        if (configs.config().getBoolean("war-lock.block-commands", true)) {
+            event.setCancelled(true);
+            messages.send(player, "command-blocked");
         }
     }
 

@@ -7,10 +7,13 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class InventoryManager {
     private final PlayerDataStorage playerData;
@@ -87,6 +90,7 @@ public final class InventoryManager {
         playerData.set(uuid, "backup.food", backup.food());
         playerData.set(uuid, "backup.health", backup.health());
         playerData.set(uuid, "backup.game-mode", backup.gameMode().name());
+        playerData.set(uuid, "backup.effects", encodeEffects(backup.effects()));
         playerData.save();
     }
 
@@ -106,7 +110,36 @@ public final class InventoryManager {
                 playerData.intValue(uuid, "backup.level", 0),
                 (float) playerData.doubleValue(uuid, "backup.exp", 0),
                 playerData.intValue(uuid, "backup.food", 20),
-                playerData.doubleValue(uuid, "backup.health", 20), mode, java.util.List.of());
+                playerData.doubleValue(uuid, "backup.health", 20), mode,
+                decodeEffects(playerData.stringList(uuid, "backup.effects")));
+    }
+
+    private List<String> encodeEffects(List<PotionEffect> effects) {
+        List<String> result = new ArrayList<>();
+        for (PotionEffect effect : effects) {
+            result.add(effect.getType().getKey().getKey() + ":" + effect.getDuration() + ":" + effect.getAmplifier()
+                    + ":" + effect.isAmbient() + ":" + effect.hasParticles() + ":" + effect.hasIcon());
+        }
+        return result;
+    }
+
+    private List<PotionEffect> decodeEffects(List<String> values) {
+        List<PotionEffect> result = new ArrayList<>();
+        for (String value : values) {
+            String[] parts = value.split(":");
+            if (parts.length < 3) continue;
+            PotionEffectType type = PotionEffectType.getByName(parts[0].toUpperCase(java.util.Locale.ROOT));
+            if (type == null) continue;
+            try {
+                int duration = Integer.parseInt(parts[1]);
+                int amplifier = Integer.parseInt(parts[2]);
+                boolean ambient = parts.length > 3 && Boolean.parseBoolean(parts[3]);
+                boolean particles = parts.length <= 4 || Boolean.parseBoolean(parts[4]);
+                boolean icon = parts.length <= 5 || Boolean.parseBoolean(parts[5]);
+                result.add(new PotionEffect(type, Math.max(1, duration), Math.max(0, amplifier), ambient, particles, icon));
+            } catch (NumberFormatException ignored) { }
+        }
+        return result;
     }
 
     private ItemStack[] normalizeStorage(ItemStack[] items) {
