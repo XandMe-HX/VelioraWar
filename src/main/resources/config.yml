@@ -54,7 +54,8 @@ cooldowns:
   # Refill hanya bisa diambil satu kali per durasi ini
   refill-seconds: 60
   # Cooldown sementara kalau dikeluarkan oleh Cheat Guard
-  cheat-kick-seconds: 86400
+  # Detektor Bukkit bersifat bukti awal; jangan mengunci pemain satu hari penuh.
+  cheat-kick-seconds: 600
 
 anti-cheat:
   enabled: true
@@ -62,9 +63,10 @@ anti-cheat:
   auto-totem:
     enabled: true
     # Offhand yang terisi tanpa input manual di bawah durasi ini dianggap mencurigakan
-    min-refill-milliseconds: 150
-    # Jumlah pelanggaran sebelum dikeluarkan dari aktivitas war
-    max-strikes: 3
+    min-refill-milliseconds: 100
+    # Lima alert dalam 10 menit diperlukan sebelum pemain dikeluarkan dari war.
+    max-strikes: 5
+    strike-decay-seconds: 600
     # Jangan ban server otomatis agar false positive tidak menghukum player permanen
     server-auto-ban: false
   illegal-items:
