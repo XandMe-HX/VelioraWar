@@ -128,8 +128,14 @@ public final class MatchManager {
             messages.send(player, "already-playing");
             return false;
         }
+        long cooldown = cooldowns.remaining(player.getUniqueId(), "cheat-kick");
+        if (cooldown <= 0) cooldown = cooldowns.remaining(player.getUniqueId(), "join");
+        if (cooldown > 0) {
+            messages.send(player, "cooldown", Map.of("time", id.veliora.war.util.TimeUtil.formatMillis(cooldown)));
+            return false;
+        }
         Arena arena = arenas.allMode().orElse(null);
-        if (arena == null || !arena.isComplete()) {
+        if (arena == null || !arena.enabled() || !arena.isComplete()) {
             messages.send(player, "arena-not-found", Map.of("arena", "all_mode"));
             return false;
         }

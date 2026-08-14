@@ -23,6 +23,9 @@ import java.util.Locale;
 import java.util.Set;
 
 public final class LoadoutManager {
+    private static final Set<Material> PURCHASED_WAR_MATERIALS = Set.of(
+            Material.MACE, Material.TRIDENT, Material.ELYTRA, Material.GOLDEN_APPLE,
+            Material.FIREWORK_ROCKET, Material.OBSIDIAN, Material.SPLASH_POTION, Material.NETHERITE_SWORD);
     private final ConfigManager configs;
     private final PlayerDataStorage playerData;
     private final EnumMap<MatchMode, Set<Material>> allowed = new EnumMap<>(MatchMode.class);
@@ -150,6 +153,8 @@ public final class LoadoutManager {
                     if (material != null) materials.add(material);
                 }
             }
+            // Upgrades bought through War Items are legitimate in every war mode.
+            materials.addAll(PURCHASED_WAR_MATERIALS);
             allowed.put(mode, Set.copyOf(materials));
         }
     }
