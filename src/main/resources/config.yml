@@ -17,6 +17,12 @@ match:
   duration-seconds: 600
   # Durasi hitung mundur sebelum pemain boleh bergerak
   countdown-seconds: 4
+  # Pemain benar-benar dikunci di koordinat spawn selama countdown.
+  freeze-players: true
+  # Player masih boleh menggerakkan kamera saat tubuhnya dibekukan.
+  freeze-allow-look: true
+  # Efek gelap selama countdown. Set false jika tidak disukai.
+  freeze-blindness: true
   # Match otomatis mulai saat kedua team penuh
   require-full-teams: true
   # Damage teman satu team dimatikan
@@ -39,12 +45,18 @@ war-lock:
   block-commands: true
   # Blok teleport dari luar plugin: command, plugin lain, ender pearl, chorus fruit, dan sejenisnya.
   block-external-teleport: true
+  # Mencegah chat dipenuhi pesan teleport dari plugin lain.
+  message-cooldown-milliseconds: 2000
 
 void:
   # Pemain yang jatuh di bawah batas ini dianggap tereliminasi
   enabled: true
   y-level: -64.0
-  count-as-death: true
+  # false = kembali ke spawn team yang dipilih tanpa eliminasi.
+  # true = jatuh dianggap kalah/tereliminasi.
+  count-as-death: false
+  # Pulihkan health saat dikembalikan ke spawn team.
+  restore-health: true
 
 cooldowns:
   # Jeda klik GUI untuk mencegah spam packet
@@ -83,6 +95,8 @@ protection:
   block-outsiders: true
   # Semua block yang berubah saat match dikembalikan setelah selesai
   restore-temporary-blocks: true
+  # Air dari bucket dan alirannya ikut dicatat lalu dikembalikan saat match selesai.
+  restore-liquid-flow: true
 
 npc:
   # NPC refill menggunakan Villager bawaan sehingga tidak wajib Citizens

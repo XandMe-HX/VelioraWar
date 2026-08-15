@@ -153,7 +153,10 @@ public final class MatchManager {
         int seconds = Math.max(3, configs.config().getInt("match.countdown-seconds", 4));
         match.remainingSeconds(seconds);
         forEach(match, player -> {
-            player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, seconds * 20 + 20, 0, false, false));
+            player.setVelocity(new org.bukkit.util.Vector(0, 0, 0));
+            if (configs.config().getBoolean("match.freeze-blindness", true)) {
+                player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, seconds * 20 + 20, 0, false, false));
+            }
             messages.send(player, "fair-play");
         });
         match.countdownTask(new BukkitRunnable() {
@@ -248,6 +251,18 @@ public final class MatchManager {
             player.setHealth(Math.min(20.0, maxHealth));
             teleportInternal(player, allArena.redSpawn());
             loadouts.apply(player, MatchMode.ALL_MODE);
+            return;
+        }
+        Match match = matchesByPlayer.get(player.getUniqueId());
+        if (match != null && !configs.config().getBoolean("void.count-as-death", false)) {
+            player.setFallDistance(0);
+            double maxHealth = player.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH) == null
+                    ? 20.0 : player.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue();
+            if (configs.config().getBoolean("void.restore-health", true)) {
+                player.setHealth(maxHealth);
+            }
+            Location teamSpawn = match.arena().spawn(match.team(player.getUniqueId()));
+            if (teamSpawn != null) teleportInternal(player, teamSpawn);
             return;
         }
         eliminate(player);
