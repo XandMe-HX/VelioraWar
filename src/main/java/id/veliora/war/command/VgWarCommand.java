@@ -87,10 +87,22 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
         try {
             // Friendly spelling kept for administrators: /vgwar set npc 1
             // The compact /vgwar setnpc 1 form remains supported as well.
-            if (sub.equals("set") && args.length >= 2 && args[1].equalsIgnoreCase("npc")) {
-                String[] npcArgs = {"setnpc", args.length >= 3 ? args[2] : ""};
-                setNpc(player, npcArgs);
-                return true;
+            if (sub.equals("set") && args.length >= 2) {
+                if (args[1].equalsIgnoreCase("npc")) {
+                    String[] npcArgs = {"setnpc", args.length >= 3 ? args[2] : ""};
+                    setNpc(player, npcArgs);
+                    return true;
+                }
+                if (args[1].equalsIgnoreCase("stay")) {
+                    configs.stay(player.getLocation());
+                    player.sendMessage(TextUtil.component("&8[&bVelioraWar&8] &aLokasi stay global berhasil ditetapkan."));
+                    return true;
+                }
+                MatchTeam directTeam = MatchTeam.from(args[1]).orElse(null);
+                if (directTeam != null) {
+                    setDirectSpawn(player, directTeam);
+                    return true;
+                }
             }
             switch (sub) {
                 case "setwarp" -> {
@@ -128,11 +140,11 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
     private void claim(Player player, String[] args) {
         if (args.length < 2) {
             player.sendMessage(TextUtil.component("&8&m---------------- &b&lDaftar Arena &8&m----------------"));
-            player.sendMessage(TextUtil.component("&f1. &bSword Duel"));
-            player.sendMessage(TextUtil.component("&f2. &dMace PvP"));
-            player.sendMessage(TextUtil.component("&f3. &cCrystal PvP"));
-            player.sendMessage(TextUtil.component("&f4. &eAll Mode"));
-            player.sendMessage(TextUtil.component("&7Set pos1 dan pos2 dulu, lalu pakai: &f/vgwar claim <1-4>"));
+            player.sendMessage(TextUtil.component("&f1-4. &bSword Duel"));
+            player.sendMessage(TextUtil.component("&f5-8. &dMace PvP"));
+            player.sendMessage(TextUtil.component("&f9-12. &cCrystal PvP"));
+            player.sendMessage(TextUtil.component("&f13. &eAll Mode"));
+            player.sendMessage(TextUtil.component("&7Set pos1 dan pos2 dulu, lalu pakai: &f/vgwar claim <id>"));
             return;
         }
         MatchMode mode = fixedMode(args[1]);
@@ -144,17 +156,39 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
             arena.size(mode == MatchMode.ALL_MODE ? MatchSize.UNLIMITED : MatchSize.FOUR_VS_FOUR);
             arenas.save();
             messages.send(player, "arena-created", Map.of("arena", arenaLabel(arena.id())));
-            player.sendMessage(TextUtil.component("&7Berdiri di dalam claim, lalu set spawn: &f/vgwar spawn merah &7dan &f/vgwar spawn biru"));
+            player.sendMessage(TextUtil.component("&7Berdiri di dalam claim, lalu pakai: &f/vgwar set merah &7dan &f/vgwar set biru"));
         }
     }
 
     private void delete(Player player, String[] args) {
-        Arena arena = arena(args);
-        if (arena.state() != ArenaState.WAITING && arena.state() != ArenaState.DISABLED)
-            throw new IllegalStateException("Arena sedang dipakai dan tidak boleh dihapus");
-        npcs.remove(arena.id());
-        arenas.delete(arena.id());
-        messages.send(player, "arena-deleted", Map.of("arena", arena.id()));
+        requireArgs(args, 2, "/vgwar delete <land|spawn> ...");
+        if (args[1].equalsIgnoreCase("land")) {
+            requireArgs(args, 4, "/vgwar delete land <arena> confirm");
+            if (!args[3].equalsIgnoreCase("confirm")) throw new IllegalArgumentException("Tambahkan kata confirm agar claim tidak terhapus karena salah ketik");
+            Arena arena = arenas.get(args[2]).orElseThrow(() -> new IllegalArgumentException("Arena tidak ditemukan: " + args[2]));
+            if (arena.state() != ArenaState.WAITING && arena.state() != ArenaState.DISABLED)
+                throw new IllegalStateException("Arena sedang dipakai dan tidak boleh dihapus");
+            npcs.remove(arena.id());
+            arenas.delete(arena.id());
+            messages.send(player, "arena-deleted", Map.of("arena", arena.id()));
+            return;
+        }
+        if (args[1].equalsIgnoreCase("spawn")) {
+            requireArgs(args, 4, "/vgwar delete spawn <arena> <merah|biru|semua>");
+            Arena arena = arenas.get(args[2]).orElseThrow(() -> new IllegalArgumentException("Arena tidak ditemukan: " + args[2]));
+            String target = args[3].toLowerCase(Locale.ROOT);
+            if (target.equals("merah") || target.equals("red")) arena.redSpawn(null);
+            else if (target.equals("biru") || target.equals("blue")) arena.greenSpawn(null);
+            else if (target.equals("semua") || target.equals("all")) {
+                arena.redSpawn(null);
+                arena.greenSpawn(null);
+            } else throw new IllegalArgumentException("Gunakan merah, biru, atau semua");
+            arena.enabled(false);
+            arenas.save();
+            player.sendMessage(TextUtil.component("&8[&bVelioraWar&8] &eSpawn " + target + " arena " + arena.id() + " berhasil dihapus. Arena otomatis dinonaktifkan."));
+            return;
+        }
+        throw new IllegalArgumentException("Gunakan /vgwar delete land <arena> confirm atau /vgwar delete spawn <arena> <merah|biru|semua>");
     }
 
     private void info(Player player, String[] args) {
@@ -164,7 +198,7 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
         player.sendMessage(TextUtil.component("&7Size: &f" + (arena.size() == null ? "belum diatur" : arena.size().id())));
         player.sendMessage(TextUtil.component("&7Status: &f" + arena.state() + " &7| Enabled: &f" + arena.enabled()));
         player.sendMessage(TextUtil.component("&7Spawn 1/merah: &f" + (arena.redSpawn() != null)));
-        player.sendMessage(TextUtil.component("&7Spawn 2/hijau: &f" + (arena.greenSpawn() != null)));
+        player.sendMessage(TextUtil.component("&7Spawn 2/biru: &f" + (arena.greenSpawn() != null)));
         player.sendMessage(TextUtil.component("&7NPC refill: &f" + (arena.refillNpcLocation() != null)));
     }
 
@@ -172,7 +206,7 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
         requireArgs(args, 3, "/vgwar set <arena> <1|2> atau /vgwar set <arena> <mode> <size>");
         Arena arena = arenas.get(args[1]).orElseThrow(() -> new IllegalArgumentException("Arena tidak ditemukan"));
         if (args.length == 3) {
-            MatchTeam team = MatchTeam.from(args[2]).orElseThrow(() -> new IllegalArgumentException("Gunakan 1/merah atau 2/hijau"));
+            MatchTeam team = MatchTeam.from(args[2]).orElseThrow(() -> new IllegalArgumentException("Gunakan 1/merah atau 2/biru"));
             if (!arena.region().contains(player.getLocation())) throw new IllegalStateException("Spawn harus berada di dalam region arena");
             if (team == MatchTeam.RED) arena.redSpawn(player.getLocation());
             else arena.greenSpawn(player.getLocation());
@@ -199,10 +233,17 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
         messages.send(player, "spawns-reset", Map.of("arena", arena.id()));
     }
 
-    private void setSpawnHere(Player player, String[] args) {
-        requireArgs(args, 2, "/vgwar spawn <merah|hijau>");
+    private void setDirectSpawn(Player player, MatchTeam team) {
         Arena arena = arenaHere(player);
-        MatchTeam team = MatchTeam.from(args[1]).orElseThrow(() -> new IllegalArgumentException("Gunakan merah atau hijau"));
+        if (team == MatchTeam.RED) arena.redSpawn(player.getLocation()); else arena.greenSpawn(player.getLocation());
+        arenas.save();
+        messages.send(player, "spawn-set", Map.of("arena", arenaLabel(arena.id()), "team", team.displayName()));
+    }
+
+    private void setSpawnHere(Player player, String[] args) {
+        requireArgs(args, 2, "/vgwar spawn <merah|biru>");
+        Arena arena = arenaHere(player);
+        MatchTeam team = MatchTeam.from(args[1]).orElseThrow(() -> new IllegalArgumentException("Gunakan merah atau biru"));
         if (team == MatchTeam.RED) arena.redSpawn(player.getLocation()); else arena.greenSpawn(player.getLocation());
         arenas.save();
         messages.send(player, "spawn-set", Map.of("arena", arenaLabel(arena.id()), "team", team.displayName()));
@@ -213,7 +254,7 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
     }
 
     private void toggle(Player player, String[] args, boolean enabled) {
-        Arena arena = arena(args);
+        Arena arena = args.length >= 2 ? arena(args) : arenaHere(player);
         if (enabled && !arena.isComplete()) {
             messages.send(player, "arena-incomplete");
             return;
@@ -239,23 +280,18 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
     }
 
     private MatchMode fixedMode(String id) {
-        return switch (id) {
-            case "1" -> MatchMode.SWORD_DUEL;
-            case "2" -> MatchMode.MACE_PVP;
-            case "3" -> MatchMode.CPVP;
-            case "4" -> MatchMode.ALL_MODE;
-            default -> throw new IllegalArgumentException("ID arena hanya 1 Sword, 2 Mace, 3 Crystal, atau 4 All Mode");
-        };
+        int numeric;
+        try { numeric = Integer.parseInt(id); }
+        catch (NumberFormatException exception) { throw new IllegalArgumentException("ID arena harus berupa angka"); }
+        for (MatchMode mode : MatchMode.values()) {
+            if (configs.file("modes.yml").getIntegerList("arena-routing." + mode.id()).contains(numeric)) return mode;
+        }
+        throw new IllegalArgumentException("ID arena belum terdaftar di arena-routing pada modes.yml");
     }
 
     private String arenaLabel(String id) {
-        return switch (id) {
-            case "1" -> "1 • Sword Duel";
-            case "2" -> "2 • Mace PvP";
-            case "3" -> "3 • Crystal PvP";
-            case "4" -> "4 • All Mode";
-            default -> id;
-        };
+        try { return id + " • " + fixedMode(id).id(); }
+        catch (Exception ignored) { return id; }
     }
 
     private Arena arena(String[] args) {
@@ -276,17 +312,25 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
             if (sender.hasPermission("veliorawar.admin")) suggestions.addAll(List.of("help", "setwarp", "pos1", "pos2", "claim", "spawn",
                     "delete", "list", "info", "set", "reset", "flag", "enable", "disable", "setnpc", "reload"));
         } else if (args.length == 2 && args[0].equalsIgnoreCase("set")) {
-            suggestions.add("npc");
+            suggestions.addAll(List.of("stay", "merah", "biru", "npc"));
             suggestions.addAll(arenas.ids());
         } else if (args.length == 3 && args[0].equalsIgnoreCase("set") && args[1].equalsIgnoreCase("npc")) {
             suggestions.addAll(List.of("1", "2"));
         } else if (args.length == 2 && args[0].equalsIgnoreCase("setnpc")) {
             suggestions.addAll(List.of("1", "2"));
         } else if (args.length == 2 && args[0].equalsIgnoreCase("claim")) {
-            suggestions.addAll(List.of("1", "2", "3", "4"));
+            for (int id = 1; id <= 13; id++) suggestions.add(Integer.toString(id));
         } else if (args.length == 2 && args[0].equalsIgnoreCase("spawn")) {
-            suggestions.addAll(List.of("merah", "hijau"));
-        } else if (args.length == 2 && List.of("delete", "info", "reset", "enable", "disable").contains(args[0].toLowerCase())) {
+            suggestions.addAll(List.of("merah", "biru"));
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("delete")) {
+            suggestions.addAll(List.of("land", "spawn"));
+        } else if (args.length == 3 && args[0].equalsIgnoreCase("delete")) {
+            suggestions.addAll(arenas.ids());
+        } else if (args.length == 4 && args[0].equalsIgnoreCase("delete") && args[1].equalsIgnoreCase("land")) {
+            suggestions.add("confirm");
+        } else if (args.length == 4 && args[0].equalsIgnoreCase("delete") && args[1].equalsIgnoreCase("spawn")) {
+            suggestions.addAll(List.of("merah", "biru", "semua"));
+        } else if (args.length == 2 && List.of("info", "reset", "enable", "disable").contains(args[0].toLowerCase())) {
             suggestions.addAll(arenas.ids());
         } else if (args.length == 3 && args[0].equalsIgnoreCase("set")) {
             suggestions.addAll(Arrays.stream(MatchMode.values()).map(MatchMode::id).toList());
