@@ -4,7 +4,7 @@ import java.util.Optional;
 
 public enum MatchTeam {
     RED("red", "&cMerah"),
-    GREEN("green", "&aHijau");
+    GREEN("blue", "&9Biru");
 
     private final String id;
     private final String displayName;
@@ -26,7 +26,7 @@ public enum MatchTeam {
         if (value == null) return Optional.empty();
         return switch (value.toLowerCase()) {
             case "red", "merah", "1" -> Optional.of(RED);
-            case "green", "hijau", "2" -> Optional.of(GREEN);
+            case "blue", "biru", "green", "hijau", "2" -> Optional.of(GREEN);
             default -> Optional.empty();
         };
     }
