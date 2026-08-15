@@ -14,8 +14,11 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerBucketEmptyEvent;
+import org.bukkit.event.player.PlayerBucketFillEvent;
 
 public final class BlockListener implements Listener {
     private final RegionProtection regions;
@@ -44,6 +47,37 @@ public final class BlockListener implements Listener {
         if (arena.flag(ArenaFlag.TEMPORARY_BLOCK)) {
             temporaryBlocks.capture(arena, event.getBlockPlaced(), event.getBlockReplacedState().getBlockData());
         }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onBucketEmpty(PlayerBucketEmptyEvent event) {
+        org.bukkit.block.Block target = event.getBlockClicked().getRelative(event.getBlockFace());
+        Arena arena = regions.arena(target.getLocation()).orElse(null);
+        if (arena == null) return;
+        MatchMode mode = matches.mode(event.getPlayer().getUniqueId()).orElse(null);
+        if (!regions.canPlace(event.getPlayer(), arena) || mode == null || !loadouts.isAllowed(mode, event.getBucket())) {
+            event.setCancelled(true);
+            return;
+        }
+        if (arena.flag(ArenaFlag.TEMPORARY_BLOCK)) temporaryBlocks.capture(arena, target);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onBucketFill(PlayerBucketFillEvent event) {
+        Arena arena = regions.arena(event.getBlockClicked().getLocation()).orElse(null);
+        if (arena == null) return;
+        if (!regions.canBreak(event.getPlayer(), arena)) {
+            event.setCancelled(true);
+            return;
+        }
+        if (arena.flag(ArenaFlag.TEMPORARY_BLOCK)) temporaryBlocks.capture(arena, event.getBlockClicked());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onLiquidFlow(BlockFromToEvent event) {
+        Arena arena = regions.arena(event.getBlock().getLocation()).orElse(null);
+        if (arena == null || !arena.flag(ArenaFlag.TEMPORARY_BLOCK)) return;
+        temporaryBlocks.capture(arena, event.getToBlock());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
