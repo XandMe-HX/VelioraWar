@@ -79,17 +79,6 @@ cooldowns:
 
 anti-cheat:
   enabled: true
-  # Hanya deteksi refill totem otomatis, bukan kecepatan klik PvP umum
-  auto-totem:
-    # Detektor lama dinonaktifkan; CombatGuard global berada di VelioraSuite.
-    enabled: false
-    # Offhand yang terisi tanpa input manual di bawah durasi ini dianggap mencurigakan
-    min-refill-milliseconds: 100
-    # Lima alert dalam 10 menit diperlukan sebelum pemain dikeluarkan dari war.
-    max-strikes: 5
-    strike-decay-seconds: 600
-    # Jangan ban server otomatis agar false positive tidak menghukum player permanen
-    server-auto-ban: false
   illegal-items:
     enabled: true
     # Item yang tidak berasal dari loadout aktif akan dihapus dari inventory war
