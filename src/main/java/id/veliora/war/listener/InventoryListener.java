@@ -143,6 +143,12 @@ public final class InventoryListener implements Listener {
             player.closeInventory();
             return;
         }
+        if (matches.isSuddenDeath(player.getUniqueId())
+                && configs.config().getBoolean("match.sudden-death.disable-refill", true)) {
+            player.sendMessage(TextUtil.component("&cRefill dinonaktifkan selama Sudden Death."));
+            player.closeInventory();
+            return;
+        }
         String key = "refill:" + arena.id();
         long duration = configs.config().getLong("cooldowns.refill-seconds", 60) * 1000L;
         if (!cooldowns.tryUse(player.getUniqueId(), key, duration)) {
