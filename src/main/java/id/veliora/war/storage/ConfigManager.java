@@ -9,6 +9,9 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -22,10 +25,24 @@ public final class ConfigManager {
 
     public void load() {
         plugin.saveDefaultConfig();
+        plugin.getConfig().options().copyDefaults(true);
+        plugin.saveConfig();
         for (String name : new String[]{"arenas.yml", "modes.yml", "gui.yml", "messages.yml", "playerdata.yml"}) {
             File file = new File(plugin.getDataFolder(), name);
             if (!file.exists()) plugin.saveResource(name, false);
-            custom.put(name, YamlConfiguration.loadConfiguration(file));
+            YamlConfiguration loaded = YamlConfiguration.loadConfiguration(file);
+            try (InputStream input = plugin.getResource(name)) {
+                if (input != null) {
+                    YamlConfiguration defaults = YamlConfiguration.loadConfiguration(
+                            new InputStreamReader(input, StandardCharsets.UTF_8));
+                    loaded.setDefaults(defaults);
+                    loaded.options().copyDefaults(true);
+                    loaded.save(file);
+                }
+            } catch (IOException exception) {
+                plugin.getLogger().warning("Gagal menggabungkan default " + name + ": " + exception.getMessage());
+            }
+            custom.put(name, loaded);
         }
     }
 
@@ -58,8 +75,21 @@ public final class ConfigManager {
     }
 
     public void warp(Location location) {
-        config().set("warp", null);
-        ConfigurationSection section = config().createSection("warp");
+        saveLocation("warp", location);
+    }
+
+    public Location stay() {
+        Location location = LocationUtil.load(config().getConfigurationSection("stay"));
+        return location == null ? warp() : location;
+    }
+
+    public void stay(Location location) {
+        saveLocation("stay", location);
+    }
+
+    private void saveLocation(String path, Location location) {
+        config().set(path, null);
+        ConfigurationSection section = config().createSection(path);
         LocationUtil.save(section, location);
         plugin.saveConfig();
     }
