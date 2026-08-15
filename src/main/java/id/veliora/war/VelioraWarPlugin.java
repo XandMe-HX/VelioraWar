@@ -76,7 +76,7 @@ public final class VelioraWarPlugin extends JavaPlugin {
         PluginManager plugins = getServer().getPluginManager();
         plugins.registerEvents(new PlayerListener(this, configs, messages, matches, inventories,
                 cooldowns, refillNpcs, refillMenu), this);
-        plugins.registerEvents(new BlockListener(regions, matches, loadouts, temporaryBlocks), this);
+        plugins.registerEvents(new BlockListener(configs, regions, matches, loadouts, temporaryBlocks), this);
         plugins.registerEvents(new DamageListener(arenaManager, matches), this);
         plugins.registerEvents(new ExplosionListener(arenaManager, explosions, temporaryBlocks), this);
         plugins.registerEvents(new InventoryListener(configs, arenaManager, messages, matches, loadouts,
