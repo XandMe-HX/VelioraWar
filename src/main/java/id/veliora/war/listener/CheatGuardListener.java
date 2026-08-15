@@ -57,6 +57,11 @@ public final class CheatGuardListener implements Listener {
         if (!(event.getEntity() instanceof Player player)) return;
         Arena arena = matches.arena(player.getUniqueId()).orElse(null);
         if (arena == null) return;
+        if (matches.isSuddenDeath(player.getUniqueId())
+                && configs.config().getBoolean("match.sudden-death.disable-totems", true)) {
+            event.setCancelled(true);
+            return;
+        }
         if (!arena.flag(ArenaFlag.ALLOW_TOTEM)) {
             event.setCancelled(true);
             return;
@@ -83,7 +88,7 @@ public final class CheatGuardListener implements Listener {
 
     private void scan() {
         if (!configs.config().getBoolean("anti-cheat.enabled", true)) return;
-        scanAutoTotem();
+        // Detektor auto-totem lama sengaja tidak dijalankan; totem normal tidak boleh false alert.
         tick++;
         int interval = Math.max(5, configs.config().getInt("settings.illegal-item-scan-ticks", 20));
         if (tick % interval == 0 && configs.config().getBoolean("anti-cheat.illegal-items.enabled", true)) scanItems();
