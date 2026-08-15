@@ -15,7 +15,9 @@ public final class AdminSubCommand {
         sender.sendMessage(TextUtil.component("&f/vgwar flag &7- berdiri di dalam claim lalu buka aturan arena"));
         sender.sendMessage(TextUtil.component("&f/vgwar enable|disable [arena] &7- ID opsional bila berdiri di arena"));
         sender.sendMessage(TextUtil.component("&f/vgwar setnpc <1|2> &7- set NPC refill (maks. 2)"));
-        sender.sendMessage(TextUtil.component("&f/vgwar info|delete <arena> &7- informasi/hapus"));
+        sender.sendMessage(TextUtil.component("&f/vgwar info <arena> &7- informasi arena"));
+        sender.sendMessage(TextUtil.component("&f/vgwar delete land <arena> confirm &7- hapus claim dengan konfirmasi"));
+        sender.sendMessage(TextUtil.component("&f/vgwar delete spawn <arena> <merah|biru|semua>"));
         sender.sendMessage(TextUtil.component("&f/vgwar list &7- daftar arena"));
         sender.sendMessage(TextUtil.component("&f/vgwar reload &7- muat ulang YAML"));
     }
