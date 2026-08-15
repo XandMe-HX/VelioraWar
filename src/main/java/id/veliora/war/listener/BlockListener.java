@@ -7,6 +7,7 @@ import id.veliora.war.match.MatchManager;
 import id.veliora.war.match.MatchMode;
 import id.veliora.war.protection.RegionProtection;
 import id.veliora.war.protection.TemporaryBlockManager;
+import id.veliora.war.storage.ConfigManager;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -21,13 +22,15 @@ import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 
 public final class BlockListener implements Listener {
+    private final ConfigManager configs;
     private final RegionProtection regions;
     private final MatchManager matches;
     private final LoadoutManager loadouts;
     private final TemporaryBlockManager temporaryBlocks;
 
-    public BlockListener(RegionProtection regions, MatchManager matches, LoadoutManager loadouts,
+    public BlockListener(ConfigManager configs, RegionProtection regions, MatchManager matches, LoadoutManager loadouts,
                          TemporaryBlockManager temporaryBlocks) {
+        this.configs = configs;
         this.regions = regions;
         this.matches = matches;
         this.loadouts = loadouts;
@@ -59,7 +62,8 @@ public final class BlockListener implements Listener {
             event.setCancelled(true);
             return;
         }
-        if (arena.flag(ArenaFlag.TEMPORARY_BLOCK)) temporaryBlocks.capture(arena, target);
+        if (configs.config().getBoolean("protection.restore-liquid-flow", true)
+                && arena.flag(ArenaFlag.TEMPORARY_BLOCK)) temporaryBlocks.capture(arena, target);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -70,13 +74,15 @@ public final class BlockListener implements Listener {
             event.setCancelled(true);
             return;
         }
-        if (arena.flag(ArenaFlag.TEMPORARY_BLOCK)) temporaryBlocks.capture(arena, event.getBlockClicked());
+        if (configs.config().getBoolean("protection.restore-liquid-flow", true)
+                && arena.flag(ArenaFlag.TEMPORARY_BLOCK)) temporaryBlocks.capture(arena, event.getBlockClicked());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onLiquidFlow(BlockFromToEvent event) {
         Arena arena = regions.arena(event.getBlock().getLocation()).orElse(null);
-        if (arena == null || !arena.flag(ArenaFlag.TEMPORARY_BLOCK)) return;
+        if (arena == null || !configs.config().getBoolean("protection.restore-liquid-flow", true)
+                || !arena.flag(ArenaFlag.TEMPORARY_BLOCK)) return;
         temporaryBlocks.capture(arena, event.getToBlock());
     }
 
