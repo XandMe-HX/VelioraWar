@@ -57,12 +57,12 @@ public final class PlayerListener implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         plugin.getServer().getScheduler().runTaskLater(plugin,
-                () -> inventories.restorePending(event.getPlayer(), configs.warp()), 10L);
+                () -> inventories.restorePending(event.getPlayer(), configs.stay()), 10L);
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-        matches.leave(event.getPlayer(), false);
+        matches.disconnect(event.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -103,9 +103,12 @@ public final class PlayerListener implements Listener {
         // Teleport yang dipanggil oleh VelioraWar (spawn, void, hasil match) harus tetap jalan.
         if (matches.consumeInternalTeleport(player.getUniqueId())) return;
 
-        // Selama berada dalam war, pemain tidak boleh memakai /tp, /home, /spawn,
-        // teleport plugin lain, ender pearl, atau cara teleport lain untuk kabur.
-        // Semua perpindahan lokasi war hanya dilakukan lewat MatchManager.
+        // Ender pearl adalah bagian dari kit. Izinkan hanya bila titik akhirnya masih di claim arena.
+        if (event.getCause() == PlayerTeleportEvent.TeleportCause.ENDER_PEARL
+                && configs.config().getBoolean("war-lock.allow-ender-pearl-inside-arena", true)
+                && event.getTo() != null && arena.region().contains(event.getTo())) return;
+
+        // /tp, /home, chorus fruit, plugin lain, dan pearl keluar claim tetap diblokir.
         if (!configs.config().getBoolean("war-lock.block-external-teleport", true)) return;
         event.setCancelled(true);
         long cooldown = Math.max(250L, configs.config().getLong("war-lock.message-cooldown-milliseconds", 2000L));
