@@ -23,7 +23,7 @@ team:
   size: 54
   filler: BLACK_STAINED_GLASS_PANE
   red-slot: 11
-  green-slot: 15
+  blue-slot: 15
 
 all-mode-confirm:
   title: '&8Masuk All Mode?'
