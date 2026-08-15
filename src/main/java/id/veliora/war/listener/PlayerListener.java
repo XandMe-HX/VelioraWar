@@ -17,6 +17,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
+import org.bukkit.event.entity.EntityResurrectEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -71,13 +72,17 @@ public final class PlayerListener implements Listener {
         Arena arena = matches.arena(player.getUniqueId()).orElse(null);
         if (arena == null) return;
         if (matches.isFrozen(player.getUniqueId())) {
-            Location look = event.getFrom().clone();
-            look.setYaw(event.getTo().getYaw());
-            look.setPitch(event.getTo().getPitch());
-            event.setTo(look);
+            player.setVelocity(new org.bukkit.util.Vector(0, 0, 0));
+            Location frozen = event.getFrom().clone();
+            if (configs.config().getBoolean("match.freeze-allow-look", true)) {
+                frozen.setYaw(event.getTo().getYaw());
+                frozen.setPitch(event.getTo().getPitch());
+            }
+            event.setTo(frozen);
             return;
         }
         if (configs.config().getBoolean("void.enabled", true)
+                && arena.flag(ArenaFlag.VOID_TELEPORT)
                 && event.getTo().getY() <= configs.config().getDouble("void.y-level", -64)) {
             event.setCancelled(true);
             matches.handleVoid(player);
@@ -103,7 +108,10 @@ public final class PlayerListener implements Listener {
         // Semua perpindahan lokasi war hanya dilakukan lewat MatchManager.
         if (!configs.config().getBoolean("war-lock.block-external-teleport", true)) return;
         event.setCancelled(true);
-        messages.send(player, "teleport-blocked");
+        long cooldown = Math.max(250L, configs.config().getLong("war-lock.message-cooldown-milliseconds", 2000L));
+        if (cooldowns.tryUse(player.getUniqueId(), "teleport-blocked-message", cooldown)) {
+            messages.send(player, "teleport-blocked");
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -119,6 +127,7 @@ public final class PlayerListener implements Listener {
             matches.leave(player, true);
             return;
         }
+        if (arena.flag(ArenaFlag.ALLOW_COMMAND)) return;
         if (configs.config().getBoolean("war-lock.block-commands", true)) {
             event.setCancelled(true);
             messages.send(player, "command-blocked");
@@ -129,6 +138,14 @@ public final class PlayerListener implements Listener {
     public void onDrop(PlayerDropItemEvent event) {
         matches.arena(event.getPlayer().getUniqueId()).ifPresent(arena -> {
             if (!arena.flag(ArenaFlag.ITEM_DROP)) event.setCancelled(true);
+        });
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onTotem(EntityResurrectEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        matches.arena(player.getUniqueId()).ifPresent(arena -> {
+            if (!arena.flag(ArenaFlag.ALLOW_TOTEM)) event.setCancelled(true);
         });
     }
 
@@ -162,9 +179,12 @@ public final class PlayerListener implements Listener {
         Player player = event.getPlayer();
         Arena arena = matches.arena(player.getUniqueId()).orElse(null);
         if (arena == null) return;
-        event.setKeepInventory(true);
-        event.getDrops().clear();
-        event.setDroppedExp(0);
+        boolean keepInventory = arena.flag(ArenaFlag.KEEP_INVENTORY);
+        event.setKeepInventory(keepInventory);
+        if (keepInventory) {
+            event.getDrops().clear();
+            event.setDroppedExp(0);
+        }
         if (matches.mode(player.getUniqueId()).orElse(null) != id.veliora.war.match.MatchMode.ALL_MODE) matches.eliminate(player);
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             if (player.isDead()) player.spigot().respawn();
