@@ -71,7 +71,7 @@ public final class PlayerListener implements Listener {
         Player player = event.getPlayer();
         Arena arena = matches.arena(player.getUniqueId()).orElse(null);
         if (arena == null) return;
-        if (matches.isFrozen(player.getUniqueId())) {
+        if (configs.config().getBoolean("match.freeze-players", true) && matches.isFrozen(player.getUniqueId())) {
             player.setVelocity(new org.bukkit.util.Vector(0, 0, 0));
             Location frozen = event.getFrom().clone();
             if (configs.config().getBoolean("match.freeze-allow-look", true)) {
