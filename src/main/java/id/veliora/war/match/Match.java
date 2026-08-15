@@ -21,6 +21,7 @@ public final class Match {
     private BukkitTask countdownTask;
     private BukkitTask timerTask;
     private int remainingSeconds;
+    private boolean suddenDeath;
 
     public Match(Arena arena, MatchSize size) {
         this.arena = arena;
@@ -80,6 +81,9 @@ public final class Match {
     public void countdownTask(BukkitTask task) { this.countdownTask = task; }
     public BukkitTask timerTask() { return timerTask; }
     public void timerTask(BukkitTask task) { this.timerTask = task; }
+    public boolean suddenDeath() { return suddenDeath; }
+    public void suddenDeath(boolean value) { suddenDeath = value; }
+
     public int remainingSeconds() { return remainingSeconds; }
     public void remainingSeconds(int seconds) { this.remainingSeconds = seconds; }
     public void cancelTasks() {

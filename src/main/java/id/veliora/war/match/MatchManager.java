@@ -198,12 +198,34 @@ public final class MatchManager {
             public void run() {
                 int remaining = match.remainingSeconds() - 1;
                 match.remainingSeconds(remaining);
+                int suddenAt = Math.max(1, configs.config().getInt("match.sudden-death.start-at-seconds", 60));
+                if (remaining == suddenAt && configs.config().getBoolean("match.sudden-death.enabled", true)) {
+                    startSuddenDeath(match);
+                }
                 if (remaining <= 0) {
                     cancel();
                     finish(match, timeoutResult(match));
                 }
             }
         }.runTaskTimer(plugin, 20L, 20L));
+    }
+
+    private void startSuddenDeath(Match match) {
+        if (match.suddenDeath()) return;
+        match.suddenDeath(true);
+        double health = Math.max(1.0D, configs.config().getDouble("match.sudden-death.health", 1.0D));
+        forEach(match, player -> {
+            if (match.eliminated(player.getUniqueId())) return;
+            player.removePotionEffect(PotionEffectType.REGENERATION);
+            player.removePotionEffect(PotionEffectType.ABSORPTION);
+            player.setAbsorptionAmount(0.0D);
+            double max = player.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH) == null
+                    ? 20.0D : player.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue();
+            player.setHealth(Math.min(max, health));
+            player.showTitle(Title.title(TextUtil.component("&4&lSUDDEN DEATH"),
+                    TextUtil.component("&c1 HP • Totem dan refill dinonaktifkan")));
+            messages.send(player, "sudden-death");
+        });
     }
 
     public void recordDamage(Player attacker, Player victim, double damage) {
@@ -269,12 +291,20 @@ public final class MatchManager {
     }
 
     public void leave(Player player, boolean notify) {
+        leaveInternal(player, notify, true);
+    }
+
+    public void disconnect(Player player) {
+        leaveInternal(player, false, false);
+    }
+
+    private void leaveInternal(Player player, boolean notify, boolean restoreInventory) {
         UUID uuid = player.getUniqueId();
         boolean wasQueued = queue.contains(uuid);
         queue.remove(uuid);
         Arena allArena = allModePlayers.remove(uuid);
         if (allArena != null) {
-            inventories.restore(player, configs.warp());
+            if (restoreInventory) inventories.restore(player, configs.stay());
             cooldowns.set(uuid, "join", configs.config().getLong("cooldowns.join-seconds", 3) * 1000L);
             if (allModePlayers.values().stream().noneMatch(arena -> arena.id().equals(allArena.id()))) temporaryBlocks.restore(allArena);
             if (notify) messages.send(player, "left");
@@ -288,7 +318,7 @@ public final class MatchManager {
         MatchTeam oldTeam = match.team(uuid);
         if (match.arena().state() == ArenaState.ACTIVE) match.eliminate(uuid);
         else match.remove(uuid);
-        inventories.restore(player, configs.warp());
+        if (restoreInventory) inventories.restore(player, configs.stay());
         cooldowns.set(uuid, "join", configs.config().getLong("cooldowns.join-seconds", 3) * 1000L);
         if (notify) messages.send(player, "left");
 
@@ -332,7 +362,7 @@ public final class MatchManager {
                 matchesByPlayer.remove(uuid, match);
                 Player player = Bukkit.getPlayer(uuid);
                 if (player != null) {
-                    inventories.restore(player, configs.warp());
+                    inventories.restore(player, configs.stay());
                     cooldowns.set(uuid, "join", configs.config().getLong("cooldowns.join-seconds", 3) * 1000L);
                     playerData.increment(uuid, result.draw() ? "stats.draws" :
                             (match.team(uuid) == result.winner() ? "stats.wins" : "stats.losses"));
@@ -360,6 +390,11 @@ public final class MatchManager {
             Player player = Bukkit.getPlayer(next.get().playerId());
             if (player != null && player.isOnline()) joinTeam(player, mode, size, next.get().team(), false);
         }
+    }
+
+    public boolean isSuddenDeath(UUID player) {
+        Match match = matchesByPlayer.get(player);
+        return match != null && match.suddenDeath();
     }
 
     public boolean isPlaying(UUID player) {
@@ -410,13 +445,13 @@ public final class MatchManager {
             match.cancelTasks();
             for (UUID uuid : match.players()) {
                 Player player = Bukkit.getPlayer(uuid);
-                if (player != null) inventories.restore(player, configs.warp());
+                if (player != null) inventories.restore(player, configs.stay());
             }
             temporaryBlocks.restore(match.arena());
         }
         for (UUID uuid : new ArrayList<>(allModePlayers.keySet())) {
             Player player = Bukkit.getPlayer(uuid);
-            if (player != null) inventories.restore(player, configs.warp());
+            if (player != null) inventories.restore(player, configs.stay());
         }
         matchesByArena.clear();
         matchesByPlayer.clear();
