@@ -53,7 +53,17 @@ public final class LoadoutManager {
             place(player, stack, section.getString("slot", "0"));
         }
         applyPurchasedItems(player);
+        if (configs.config().getBoolean("loadouts.fill-empty-slots-with-totems", true)) fillEmptySlotsWithTotems(player);
         player.updateInventory();
+    }
+
+    private void fillEmptySlotsWithTotems(Player player) {
+        for (int slot = 0; slot < player.getInventory().getStorageContents().length; slot++) {
+            ItemStack current = player.getInventory().getItem(slot);
+            if (current == null || current.getType().isAir()) {
+                player.getInventory().setItem(slot, new ItemStack(Material.TOTEM_OF_UNDYING));
+            }
+        }
     }
 
     private void applyPurchasedItems(Player player) {
