@@ -29,8 +29,14 @@ match:
   friendly-fire: false
   # Saat waktu habis, total damage terbesar menang
   timeout-winner-by-damage: true
-  # Waktu sebelum pemain dikembalikan ke warp setelah selesai
+  # Waktu sebelum pemain dikembalikan ke lokasi /vgwar set stay.
   end-delay-seconds: 3
+  sudden-death:
+    enabled: true
+    start-at-seconds: 60
+    health: 1.0
+    disable-totems: true
+    disable-refill: true
 
 queue:
   # Masukkan pemain ke antrean saat semua arena yang cocok sedang dipakai
@@ -45,6 +51,8 @@ war-lock:
   block-commands: true
   # Blok teleport dari luar plugin: command, plugin lain, ender pearl, chorus fruit, dan sejenisnya.
   block-external-teleport: true
+  # Ender pearl tetap boleh selama tujuan masih berada di dalam claim arena.
+  allow-ender-pearl-inside-arena: true
   # Mencegah chat dipenuhi pesan teleport dari plugin lain.
   message-cooldown-milliseconds: 2000
 
@@ -73,7 +81,8 @@ anti-cheat:
   enabled: true
   # Hanya deteksi refill totem otomatis, bukan kecepatan klik PvP umum
   auto-totem:
-    enabled: true
+    # Detektor lama dinonaktifkan; CombatGuard global berada di VelioraSuite.
+    enabled: false
     # Offhand yang terisi tanpa input manual di bawah durasi ini dianggap mencurigakan
     min-refill-milliseconds: 100
     # Lima alert dalam 10 menit diperlukan sebelum pemain dikeluarkan dari war.
@@ -85,6 +94,10 @@ anti-cheat:
     enabled: true
     # Item yang tidak berasal dari loadout aktif akan dihapus dari inventory war
     remove: true
+
+loadouts:
+  # Semua slot kosong setelah kit utama diisi satu totem per slot.
+  fill-empty-slots-with-totems: true
 
 protection:
   # Block arena tidak hancur oleh crystal, anchor, TNT, creeper, dan ledakan lain
@@ -108,5 +121,7 @@ npc:
   # Diatur melalui /vgwar setnpc 1 atau /vgwar setnpc 2. Tidak terikat arena.
   locations: {}
 
-# Warp utama disimpan otomatis lewat /vgwar setwarp
+# Warp lama tetap menjadi fallback agar data server lama aman.
 warp: {}
+# Satu lokasi akhir global, diatur melalui /vgwar set stay.
+stay: {}
