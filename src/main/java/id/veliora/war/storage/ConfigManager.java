@@ -26,6 +26,8 @@ public final class ConfigManager {
     public void load() {
         plugin.saveDefaultConfig();
         plugin.getConfig().options().copyDefaults(true);
+        // Detektor auto-totem lokal sudah dipindahkan dari desain; hapus sisa config lama.
+        plugin.getConfig().set("anti-cheat.auto-totem", null);
         plugin.saveConfig();
         for (String name : new String[]{"arenas.yml", "modes.yml", "gui.yml", "messages.yml", "playerdata.yml"}) {
             File file = new File(plugin.getDataFolder(), name);
