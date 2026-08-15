@@ -30,6 +30,7 @@ import java.util.Map;
 public final class VgWarCommand implements CommandExecutor, TabCompleter {
     private final VelioraWarPlugin plugin;
     private final ArenaManager arenas;
+    private final id.veliora.war.storage.ConfigManager configs;
     private final MessageManager messages;
     private final MainMenuGui menu;
     private final FlagGui flagGui;
@@ -41,6 +42,7 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
                         MessageManager messages, MainMenuGui menu, FlagGui flagGui, RefillNpcManager npcs) {
         this.plugin = plugin;
         this.arenas = arenas;
+        this.configs = configs;
         this.messages = messages;
         this.menu = menu;
         this.flagGui = flagGui;
@@ -91,6 +93,10 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
             switch (sub) {
+                case "setwarp" -> {
+                    configs.warp(player.getLocation());
+                    messages.send(player, "warp-set");
+                }
                 case "pos1", "pos2" -> setPosition(player, sub.equals("pos1") ? 1 : 2);
                 case "claim" -> claim(player, args);
                 case "delete" -> delete(player, args);
@@ -194,9 +200,9 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
     }
 
     private void setSpawnHere(Player player, String[] args) {
-        requireArgs(args, 2, "/vgwar spawn <merah|biru>");
+        requireArgs(args, 2, "/vgwar spawn <merah|hijau>");
         Arena arena = arenaHere(player);
-        MatchTeam team = MatchTeam.from(args[1]).orElseThrow(() -> new IllegalArgumentException("Gunakan merah atau biru"));
+        MatchTeam team = MatchTeam.from(args[1]).orElseThrow(() -> new IllegalArgumentException("Gunakan merah atau hijau"));
         if (team == MatchTeam.RED) arena.redSpawn(player.getLocation()); else arena.greenSpawn(player.getLocation());
         arenas.save();
         messages.send(player, "spawn-set", Map.of("arena", arenaLabel(arena.id()), "team", team.displayName()));
@@ -267,7 +273,7 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
         List<String> suggestions = new ArrayList<>();
         if (args.length == 1) {
             suggestions.add("menu");
-            if (sender.hasPermission("veliorawar.admin")) suggestions.addAll(List.of("help", "pos1", "pos2", "claim", "spawn",
+            if (sender.hasPermission("veliorawar.admin")) suggestions.addAll(List.of("help", "setwarp", "pos1", "pos2", "claim", "spawn",
                     "delete", "list", "info", "set", "reset", "flag", "enable", "disable", "setnpc", "reload"));
         } else if (args.length == 2 && args[0].equalsIgnoreCase("set")) {
             suggestions.add("npc");
@@ -279,7 +285,7 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
         } else if (args.length == 2 && args[0].equalsIgnoreCase("claim")) {
             suggestions.addAll(List.of("1", "2", "3", "4"));
         } else if (args.length == 2 && args[0].equalsIgnoreCase("spawn")) {
-            suggestions.addAll(List.of("merah", "biru"));
+            suggestions.addAll(List.of("merah", "hijau"));
         } else if (args.length == 2 && List.of("delete", "info", "reset", "enable", "disable").contains(args[0].toLowerCase())) {
             suggestions.addAll(arenas.ids());
         } else if (args.length == 3 && args[0].equalsIgnoreCase("set")) {
