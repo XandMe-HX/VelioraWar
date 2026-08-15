@@ -30,6 +30,7 @@ import java.util.Map;
 public final class VgWarCommand implements CommandExecutor, TabCompleter {
     private final VelioraWarPlugin plugin;
     private final ArenaManager arenas;
+    private final id.veliora.war.storage.ConfigManager configs;
     private final MessageManager messages;
     private final MainMenuGui menu;
     private final FlagGui flagGui;
@@ -41,6 +42,7 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
                         MessageManager messages, MainMenuGui menu, FlagGui flagGui, RefillNpcManager npcs) {
         this.plugin = plugin;
         this.arenas = arenas;
+        this.configs = configs;
         this.messages = messages;
         this.menu = menu;
         this.flagGui = flagGui;
