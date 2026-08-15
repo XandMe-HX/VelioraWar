@@ -28,14 +28,14 @@ public final class TeamSelectGui {
                 new ItemBuilder(Material.RED_WOOL).name("&c&lTEAM MERAH")
                         .lore("&7Maksimal " + size.playersPerTeam() + " pemain", "&eKlik untuk bergabung")
                         .action("team:" + mode.id() + ":" + size.id() + ":red").build());
-        inventory.setItem(configs.file("gui.yml").getInt("team.green-slot", 15),
-                new ItemBuilder(Material.GREEN_WOOL).name("&a&lTEAM HIJAU")
+        inventory.setItem(configs.file("gui.yml").getInt("team.blue-slot", 15),
+                new ItemBuilder(Material.BLUE_WOOL).name("&9&lTEAM BIRU")
                         .lore("&7Maksimal " + size.playersPerTeam() + " pemain", "&eKlik untuk bergabung")
-                        .action("team:" + mode.id() + ":" + size.id() + ":green").build());
+                        .action("team:" + mode.id() + ":" + size.id() + ":blue").build());
         // Visual slots: empty members are barriers. The selected player will join on click.
         for (int i = 0; i < size.playersPerTeam(); i++) {
             inventory.setItem(27 + i, new ItemBuilder(Material.BARRIER).name("&cSlot Merah kosong").lore("&7Belum ada player").action("noop").build());
-            inventory.setItem(35 - i, new ItemBuilder(Material.BARRIER).name("&aSlot Hijau kosong").lore("&7Belum ada player").action("noop").build());
+            inventory.setItem(35 - i, new ItemBuilder(Material.BARRIER).name("&9Slot Biru kosong").lore("&7Belum ada player").action("noop").build());
         }
         player.openInventory(inventory);
     }
