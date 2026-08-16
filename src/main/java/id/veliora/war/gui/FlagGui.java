@@ -20,7 +20,7 @@ public final class FlagGui {
     public void open(Player player, Arena arena) {
         int size = configs.file("gui.yml").getInt("flag.size", 54);
         String title = configs.file("gui.yml").getString("flag.title", "&8Flag Arena")
-                .replace("{arena}", arena.id());
+                .replace("{arena}", "Land Global");
         Inventory inventory = Bukkit.createInventory(new GuiHolder(), size, TextUtil.component(title));
         MainMenuGui.fill(inventory, Material.matchMaterial(configs.file("gui.yml").getString("flag.filler", "GRAY_STAINED_GLASS_PANE")));
         int slot = 10;
@@ -30,7 +30,7 @@ public final class FlagGui {
             inventory.setItem(slot++, new ItemBuilder(material(flag, enabled))
                     .name((enabled ? "&a&l" : "&c&l") + display(flag))
                     .lore("&7Status: " + (enabled ? "&aON" : "&cOFF"), "&eKlik untuk mengubah")
-                    .action("flag:" + arena.id() + ":" + flag.key()).build());
+                    .action("flag:global:" + flag.key()).build());
         }
         player.openInventory(inventory);
     }

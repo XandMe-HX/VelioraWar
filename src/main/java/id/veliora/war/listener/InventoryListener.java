@@ -129,12 +129,11 @@ public final class InventoryListener implements Listener {
 
     private void toggleFlag(Player player, String[] parts) {
         if (!player.hasPermission("veliorawar.admin") || parts.length < 3) return;
-        Arena arena = arenas.get(parts[1]).orElse(null);
+        Arena arena = arenas.globalArena().orElse(null);
         ArenaFlag flag = ArenaFlag.from(parts[2]).orElse(null);
         if (arena == null || flag == null) return;
-        arena.flag(flag, !arena.flag(flag));
-        arenas.save();
-        flags.open(player, arena);
+        arenas.setGlobalFlag(flag, !arenas.globalFlag(flag));
+        flags.open(player, arenas.globalArena().orElse(arena));
     }
 
     private void claimRefill(Player player, String arenaId) {
@@ -166,7 +165,7 @@ public final class InventoryListener implements Listener {
         player.sendMessage(TextUtil.component("&8&m---------------- &b&lPanduan VelioraWar &8&m----------------"));
         player.sendMessage(TextUtil.component("&f1. &7Pilih &bBuat Party&7, lalu pilih mode dan ukuran team."));
         player.sendMessage(TextUtil.component("&f2. &7Masuk ke &cMerah &7atau &9Biru&7. Match mulai saat kedua team penuh."));
-        player.sendMessage(TextUtil.component("&f3. &7Buka &6War Items &7untuk membeli item atau upgrade enchant memakai Vault."));
+        player.sendMessage(TextUtil.component("&f3. &7Tunggu hitungan mundur; bergerak setelah tulisan GO."));
         player.sendMessage(TextUtil.component("&f4. &7Saat war: command, teleport, dan keluar arena diblokir."));
     }
 

@@ -21,8 +21,8 @@ public final class ModeSelectGui {
     }
 
     public void open(Player player, MatchMode mode) {
-        if (mode == MatchMode.ALL_MODE) {
-            openAllModeConfirm(player);
+        if (!mode.isPlayable()) {
+            player.sendMessage(TextUtil.component("&cAll Mode sedang dinonaktifkan."));
             return;
         }
         int size = Math.max(27, configs.file("gui.yml").getInt("size.size", 27));
@@ -56,9 +56,9 @@ public final class ModeSelectGui {
         Inventory inventory = Bukkit.createInventory(new GuiHolder(), size,
                 TextUtil.component("&#48D9FF&lVelioraWar &8• &fPilih Mode"));
         MainMenuGui.fill(inventory, Material.BLUE_STAINED_GLASS_PANE);
-        int[] slots = {10, 12, 14, 16};
+        int[] slots = {11, 13, 15};
         int index = 0;
-        for (MatchMode mode : MatchMode.values()) {
+        for (MatchMode mode : MatchMode.playable()) {
             Material icon = loadouts.icon(mode);
             if (icon == null) icon = Material.BARRIER;
             inventory.setItem(slots[index++], new ItemBuilder(icon).name(loadouts.displayName(mode))
