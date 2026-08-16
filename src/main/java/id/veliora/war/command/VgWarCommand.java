@@ -169,6 +169,12 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
         if (!arenas.hasLand()) throw new IllegalStateException("Land VelioraWar belum dibuat");
         player.sendMessage(TextUtil.component("&8&m------------- &b&lVelioraWar &8&m-------------"));
         player.sendMessage(TextUtil.component("&7Status: " + (arenas.maintenance() ? "&eMAINTENANCE" : "&aAKTIF")));
+        arenas.globalRegion().ifPresent(region -> {
+            player.sendMessage(TextUtil.component("&7World: &f" + region.world()));
+            player.sendMessage(TextUtil.component("&7Batas X/Z: &f" + region.minX() + ", " + region.minZ()
+                    + " &8sampai &f" + region.maxX() + ", " + region.maxZ()));
+            player.sendMessage(TextUtil.component("&7Vertikal: &fFULL HEIGHT &8(" + region.minY() + " sampai " + region.maxY() + ")"));
+        });
         for (MatchMode mode : MatchMode.playable()) {
             Arena arena = arenas.forMode(mode).orElse(null);
             if (arena == null) continue;
