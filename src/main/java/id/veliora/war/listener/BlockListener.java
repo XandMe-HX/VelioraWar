@@ -17,6 +17,12 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.BlockBurnEvent;
+import org.bukkit.event.block.BlockIgniteEvent;
+import org.bukkit.event.block.BlockPistonExtendEvent;
+import org.bukkit.event.block.BlockPistonRetractEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
@@ -86,10 +92,15 @@ public final class BlockListener implements Listener {
                 && activity.flag(ArenaFlag.TEMPORARY_BLOCK)) temporaryBlocks.capture(activity, event.getBlockClicked());
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onLiquidFlow(BlockFromToEvent event) {
         Arena land = regions.arena(event.getBlock().getLocation()).orElse(null);
-        if (land == null || !configs.config().getBoolean("protection.restore-liquid-flow", true)) return;
+        if (land == null) return;
+        if (!land.flag(ArenaFlag.LIQUID_FLOW)) {
+            event.setCancelled(true);
+            return;
+        }
+        if (!configs.config().getBoolean("protection.restore-liquid-flow", true)) return;
         for (Arena arena : matches.arenasAt(event.getBlock().getLocation())) {
             if (arena.flag(ArenaFlag.TEMPORARY_BLOCK)) temporaryBlocks.capture(arena, event.getToBlock());
         }
@@ -117,7 +128,7 @@ public final class BlockListener implements Listener {
         if (land == null) return;
         if (regions.maintenanceEditor(event.getPlayer())) return;
         Arena activity = matches.arena(event.getPlayer().getUniqueId()).orElse(null);
-        if (activity == null) {
+        if (activity == null || !land.flag(ArenaFlag.INTERACT)) {
             event.setCancelled(true);
             return;
         }
@@ -125,5 +136,45 @@ public final class BlockListener implements Listener {
         if (type == Material.RESPAWN_ANCHOR || type == Material.OBSIDIAN || type == Material.BEDROCK) {
             if (activity.flag(ArenaFlag.TEMPORARY_BLOCK)) temporaryBlocks.capture(activity, event.getClickedBlock());
         }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onIgnite(BlockIgniteEvent event) {
+        regions.arena(event.getBlock().getLocation()).ifPresent(land -> {
+            if (!land.flag(ArenaFlag.FIRE_SPREAD)) event.setCancelled(true);
+        });
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onBurn(BlockBurnEvent event) {
+        regions.arena(event.getBlock().getLocation()).ifPresent(land -> {
+            if (!land.flag(ArenaFlag.FIRE_SPREAD)) event.setCancelled(true);
+        });
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPistonExtend(BlockPistonExtendEvent event) {
+        Arena land = regions.arena(event.getBlock().getLocation()).orElse(null);
+        if (land != null && !land.flag(ArenaFlag.PISTON)) event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPistonRetract(BlockPistonRetractEvent event) {
+        Arena land = regions.arena(event.getBlock().getLocation()).orElse(null);
+        if (land != null && !land.flag(ArenaFlag.PISTON)) event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onMobSpawn(CreatureSpawnEvent event) {
+        Arena land = regions.arena(event.getLocation()).orElse(null);
+        if (land != null && !land.flag(ArenaFlag.MOB_SPAWN)
+                && event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.CUSTOM) event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPickup(EntityPickupItemEvent event) {
+        if (!(event.getEntity() instanceof Player)) return;
+        Arena land = regions.arena(event.getItem().getLocation()).orElse(null);
+        if (land != null && !land.flag(ArenaFlag.ITEM_PICKUP)) event.setCancelled(true);
     }
 }
