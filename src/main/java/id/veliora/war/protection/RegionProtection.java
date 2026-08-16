@@ -22,11 +22,19 @@ public final class RegionProtection {
         return arenas.at(location);
     }
 
-    public boolean canPlace(Player player, Arena arena) {
-        return matches.isInArena(player.getUniqueId(), arena) && arena.flag(ArenaFlag.BLOCK_PLACE);
+    public boolean maintenanceEditor(Player player) {
+        return arenas.maintenance() && player.hasPermission("veliorawar.admin");
     }
 
-    public boolean canBreak(Player player, Arena arena) {
-        return matches.isInArena(player.getUniqueId(), arena) && arena.flag(ArenaFlag.BLOCK_BREAK);
+    public boolean canPlace(Player player, Arena ignoredRegionProfile) {
+        if (maintenanceEditor(player)) return true;
+        Arena activity = matches.arena(player.getUniqueId()).orElse(null);
+        return activity != null && activity.flag(ArenaFlag.BLOCK_PLACE);
+    }
+
+    public boolean canBreak(Player player, Arena ignoredRegionProfile) {
+        if (maintenanceEditor(player)) return true;
+        Arena activity = matches.arena(player.getUniqueId()).orElse(null);
+        return activity != null && activity.flag(ArenaFlag.BLOCK_BREAK);
     }
 }
