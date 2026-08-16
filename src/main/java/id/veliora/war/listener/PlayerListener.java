@@ -18,6 +18,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.EntityResurrectEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -167,14 +168,27 @@ public final class PlayerListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
+    public void onNpcDamage(EntityDamageEvent event) {
+        if (!npcs.isRefillNpc(event.getEntity())) return;
+        event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onNpcClick(PlayerInteractEntityEvent event) {
         if (!npcs.isRefillNpc(event.getRightClicked())) return;
         event.setCancelled(true);
-        Arena arena = matches.arena(event.getPlayer().getUniqueId()).orElse(null);
-        if (arena != null && arena.mode() == id.veliora.war.match.MatchMode.ALL_MODE
-                && matches.isInArena(event.getPlayer().getUniqueId(), arena)) {
-            refillGui.open(event.getPlayer(), arena);
+        Player player = event.getPlayer();
+        Arena arena = matches.arena(player.getUniqueId()).orElse(null);
+        if (arena == null || arena.mode() != id.veliora.war.match.MatchMode.ALL_MODE
+                || !matches.isInArena(player.getUniqueId(), arena)) {
+            messages.send(player, "npc-refill-all-only");
+            return;
         }
+        if (matches.isSuddenDeath(player.getUniqueId())) {
+            messages.send(player, "npc-refill-sudden");
+            return;
+        }
+        refillGui.open(player, arena);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
