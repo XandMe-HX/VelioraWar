@@ -62,7 +62,7 @@ public final class MainMenuGui {
                          String name, String description, String sizes) {
         boolean available = matches.modeAvailable(mode);
         List<String> lore = List.of(description, sizes, "",
-                available ? "&a● SIAP DIMAINKAN" : "&c● BELUM SIAP / MAINTENANCE",
+                matches.modeStatus(mode), matches.modePopulation(mode),
                 available ? "&eKlik untuk memilih ukuran" : "&7Admin perlu mengatur spawn dan enable");
         inventory.setItem(slot, new ItemBuilder(available ? icon : Material.BARRIER)
                 .name(name).lore(lore).action(available ? "mode:" + mode.id() : "noop").hideFlags().build());

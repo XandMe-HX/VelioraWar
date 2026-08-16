@@ -39,6 +39,12 @@ public final class QueueManager {
         return queues.values().stream().anyMatch(queue -> queue.stream().anyMatch(entry -> entry.playerId().equals(player)));
     }
 
+    public int count(MatchMode mode) {
+        String prefix = mode.id() + ':';
+        return queues.entrySet().stream().filter(entry -> entry.getKey().startsWith(prefix))
+                .mapToInt(entry -> entry.getValue().size()).sum();
+    }
+
     private String key(MatchMode mode, MatchSize size) {
         return mode.id() + ':' + size.id();
     }
