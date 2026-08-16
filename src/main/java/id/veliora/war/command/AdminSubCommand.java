@@ -15,6 +15,7 @@ public final class AdminSubCommand {
         sender.sendMessage(TextUtil.component("&f/vgwar disable &7- maintenance; admin boleh membangun"));
         sender.sendMessage(TextUtil.component("&f/vgwar flag <mode> &7- atur aturan mode"));
         sender.sendMessage(TextUtil.component("&f/vgwar npc <set|delete> <1|2>"));
+        sender.sendMessage(TextUtil.component("&f/vgwar npc cleanup &7- bersihkan hologram NPC lama yang tersangkut"));
         sender.sendMessage(TextUtil.component("&f/vgwar info [mode] &7- periksa land dan spawn"));
         sender.sendMessage(TextUtil.component("&f/vgwar delete spawn <mode> <merah|biru|semua>"));
         sender.sendMessage(TextUtil.component("&f/vgwar delete land confirm &7- hapus land dengan aman"));

@@ -21,6 +21,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Locale;
 
 public final class RefillNpcManager implements NpcHook {
     private final VelioraWarPlugin plugin;
@@ -41,15 +42,37 @@ public final class RefillNpcManager implements NpcHook {
     }
 
     public void spawnAll() {
-        activeNpcs.clear();
-        Bukkit.getWorlds().forEach(world -> world.getEntities().stream()
-                .filter(entity -> entity.getPersistentDataContainer().has(npcKey)
-                        || entity.getPersistentDataContainer().has(hologramKey))
-                .forEach(Entity::remove));
+        cleanupOrphans();
         for (int slot = 1; slot <= 2; slot++) {
             Location location = configuredLocation(slot);
             if (location != null) spawn(location, "global-" + slot);
         }
+    }
+
+    /**
+     * Removes current NPCs plus orphan holograms left by older VelioraWar versions.
+     * Legacy-name cleanup is restricted to the claimed VelioraWar land.
+     */
+    public int cleanupOrphans() {
+        activeNpcs.clear();
+        int removed = 0;
+        for (org.bukkit.World world : Bukkit.getWorlds()) {
+            for (Entity entity : new java.util.ArrayList<>(world.getEntities())) {
+                if (!managedOrLegacy(entity)) continue;
+                entity.remove();
+                removed++;
+            }
+        }
+        return removed;
+    }
+
+    private boolean managedOrLegacy(Entity entity) {
+        if (entity.getPersistentDataContainer().has(npcKey)
+                || entity.getPersistentDataContainer().has(hologramKey)) return true;
+        if (!(entity instanceof ArmorStand) && !(entity instanceof Villager)) return false;
+        if (arenas.at(entity.getLocation()).isEmpty() || entity.customName() == null) return false;
+        String name = TextUtil.plainLegacy(entity.customName()).toUpperCase(Locale.ROOT);
+        return name.contains("REFILL") || name.contains("REFIL") || name.contains("ʀᴇꜰɪʟ");
     }
 
     public void set(int slot, Location location) {
