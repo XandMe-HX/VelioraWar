@@ -30,7 +30,9 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public final class PlayerListener implements Listener {
     private final VelioraWarPlugin plugin;
@@ -41,6 +43,7 @@ public final class PlayerListener implements Listener {
     private final CooldownManager cooldowns;
     private final RefillNpcManager npcs;
     private final RefillGui refillGui;
+    private final Map<UUID, Location> freezeAnchors = new HashMap<>();
 
     public PlayerListener(VelioraWarPlugin plugin, ConfigManager configs, MessageManager messages,
                           MatchManager matches, InventoryManager inventories, CooldownManager cooldowns,
@@ -57,12 +60,14 @@ public final class PlayerListener implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
+        freezeAnchors.remove(event.getPlayer().getUniqueId());
         plugin.getServer().getScheduler().runTaskLater(plugin,
                 () -> inventories.restorePending(event.getPlayer(), configs.stay()), 10L);
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
+        freezeAnchors.remove(event.getPlayer().getUniqueId());
         matches.disconnect(event.getPlayer());
     }
 
@@ -74,14 +79,16 @@ public final class PlayerListener implements Listener {
         if (arena == null) return;
         if (configs.config().getBoolean("match.freeze-players", true) && matches.isFrozen(player.getUniqueId())) {
             player.setVelocity(new org.bukkit.util.Vector(0, 0, 0));
-            Location frozen = event.getFrom().clone();
+            Location anchor = freezeAnchors.computeIfAbsent(player.getUniqueId(),
+                    ignored -> event.getFrom().clone()).clone();
             if (configs.config().getBoolean("match.freeze-allow-look", true)) {
-                frozen.setYaw(event.getTo().getYaw());
-                frozen.setPitch(event.getTo().getPitch());
+                anchor.setYaw(event.getTo().getYaw());
+                anchor.setPitch(event.getTo().getPitch());
             }
-            event.setTo(frozen);
+            event.setTo(anchor);
             return;
         }
+        freezeAnchors.remove(player.getUniqueId());
         if (configs.config().getBoolean("void.enabled", true)
                 && arena.flag(ArenaFlag.VOID_TELEPORT)
                 && event.getTo().getY() <= configs.config().getDouble("void.y-level", -64)) {
@@ -102,7 +109,22 @@ public final class PlayerListener implements Listener {
         if (arena == null) return;
 
         // Teleport yang dipanggil oleh VelioraWar (spawn, void, hasil match) harus tetap jalan.
-        if (matches.consumeInternalTeleport(player.getUniqueId())) return;
+        if (matches.consumeInternalTeleport(player.getUniqueId())) {
+            freezeAnchors.remove(player.getUniqueId());
+            return;
+        }
+
+        // Izinkan setback kecil dari anticheat/plugin selama tujuannya tetap di land.
+        // Ini mencegah loop koreksi posisi dan spam pesan saat pemain sedang dibekukan.
+        if (event.getCause() == PlayerTeleportEvent.TeleportCause.PLUGIN
+                && event.getTo() != null && arena.region().contains(event.getTo())
+                && event.getFrom().getWorld() == event.getTo().getWorld()
+                && event.getFrom().distanceSquared(event.getTo()) <= 64.0D) {
+            if (matches.isFrozen(player.getUniqueId())) {
+                freezeAnchors.put(player.getUniqueId(), event.getTo().clone());
+            }
+            return;
+        }
 
         // Ender pearl adalah bagian dari kit. Izinkan hanya bila titik akhirnya masih di claim arena.
         if (event.getCause() == PlayerTeleportEvent.TeleportCause.ENDER_PEARL
