@@ -19,9 +19,22 @@ public enum MatchMode {
         return id;
     }
 
+    public String shortName() {
+        return switch (this) {
+            case SWORD_DUEL -> "sword";
+            case MACE_PVP -> "mace";
+            case CPVP -> "cpvp";
+            case ALL_MODE -> "all";
+        };
+    }
+
     public static Optional<MatchMode> from(String value) {
         if (value == null) return Optional.empty();
-        String normalized = value.toLowerCase().replace('-', '_');
+        String normalized = value.toLowerCase().replace('-', '_').replace(' ', '_');
+        if (normalized.equals("sword") || normalized.equals("pvp") || normalized.equals("sword_pvp")) return Optional.of(SWORD_DUEL);
+        if (normalized.equals("mace")) return Optional.of(MACE_PVP);
+        if (normalized.equals("crystal") || normalized.equals("crystal_pvp")) return Optional.of(CPVP);
+        if (normalized.equals("all") || normalized.equals("semua")) return Optional.of(ALL_MODE);
         return Arrays.stream(values()).filter(mode -> mode.id.equals(normalized)).findFirst();
     }
 }

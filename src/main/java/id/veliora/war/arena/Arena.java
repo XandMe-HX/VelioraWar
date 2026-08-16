@@ -54,7 +54,8 @@ public final class Arena {
 
     public boolean isComplete() {
         if (region == null || mode == null || size == null || redSpawn == null) return false;
-        return mode == MatchMode.ALL_MODE || greenSpawn != null;
+        if (!region.contains(redSpawn)) return false;
+        return mode == MatchMode.ALL_MODE || (greenSpawn != null && region.contains(greenSpawn));
     }
 
     private static Location cloneLocation(Location location) {

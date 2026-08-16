@@ -9,6 +9,8 @@ settings:
   locale: id
   # Kalau true, semua perubahan arena langsung disimpan ke arenas.yml
   auto-save-arena: true
+  # Status global. /vgwar disable mengaktifkan maintenance tanpa membuka arena ke member.
+  enabled: true
   # Interval pemeriksaan item ilegal. 20 ticks = 1 detik
   illegal-item-scan-ticks: 20
 
@@ -107,7 +109,7 @@ npc:
   entity-type: VILLAGER
   invulnerable: true
   silent: true
-  # Diatur melalui /vgwar setnpc 1 atau /vgwar setnpc 2. Tidak terikat arena.
+  # Diatur melalui /vgwar npc set 1 atau /vgwar npc set 2. Tidak terikat arena.
   locations: {}
 
 # Warp lama tetap menjadi fallback agar data server lama aman.

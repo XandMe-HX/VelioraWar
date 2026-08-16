@@ -39,62 +39,73 @@ public final class BlockListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlace(BlockPlaceEvent event) {
-        Arena arena = regions.arena(event.getBlock().getLocation()).orElse(null);
-        if (arena == null) return;
+        Arena land = regions.arena(event.getBlock().getLocation()).orElse(null);
+        if (land == null) return;
         Player player = event.getPlayer();
+        if (regions.maintenanceEditor(player)) return;
+        Arena activity = matches.arena(player.getUniqueId()).orElse(null);
         MatchMode mode = matches.mode(player.getUniqueId()).orElse(null);
-        if (!regions.canPlace(player, arena) || mode == null || !loadouts.isAllowed(mode, event.getBlockPlaced().getType())) {
+        if (activity == null || !regions.canPlace(player, land) || mode == null
+                || !loadouts.isAllowed(mode, event.getBlockPlaced().getType())) {
             event.setCancelled(true);
             return;
         }
-        if (arena.flag(ArenaFlag.TEMPORARY_BLOCK)) {
-            temporaryBlocks.capture(arena, event.getBlockPlaced(), event.getBlockReplacedState().getBlockData());
+        if (activity.flag(ArenaFlag.TEMPORARY_BLOCK)) {
+            temporaryBlocks.capture(activity, event.getBlockPlaced(), event.getBlockReplacedState().getBlockData());
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBucketEmpty(PlayerBucketEmptyEvent event) {
         org.bukkit.block.Block target = event.getBlockClicked().getRelative(event.getBlockFace());
-        Arena arena = regions.arena(target.getLocation()).orElse(null);
-        if (arena == null) return;
+        Arena land = regions.arena(target.getLocation()).orElse(null);
+        if (land == null) return;
+        if (regions.maintenanceEditor(event.getPlayer())) return;
+        Arena activity = matches.arena(event.getPlayer().getUniqueId()).orElse(null);
         MatchMode mode = matches.mode(event.getPlayer().getUniqueId()).orElse(null);
-        if (!regions.canPlace(event.getPlayer(), arena) || mode == null || !loadouts.isAllowed(mode, event.getBucket())) {
+        if (activity == null || !regions.canPlace(event.getPlayer(), land) || mode == null
+                || !loadouts.isAllowed(mode, event.getBucket())) {
             event.setCancelled(true);
             return;
         }
         if (configs.config().getBoolean("protection.restore-liquid-flow", true)
-                && arena.flag(ArenaFlag.TEMPORARY_BLOCK)) temporaryBlocks.capture(arena, target);
+                && activity.flag(ArenaFlag.TEMPORARY_BLOCK)) temporaryBlocks.capture(activity, target);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBucketFill(PlayerBucketFillEvent event) {
-        Arena arena = regions.arena(event.getBlockClicked().getLocation()).orElse(null);
-        if (arena == null) return;
-        if (!regions.canBreak(event.getPlayer(), arena)) {
+        Arena land = regions.arena(event.getBlockClicked().getLocation()).orElse(null);
+        if (land == null) return;
+        if (regions.maintenanceEditor(event.getPlayer())) return;
+        Arena activity = matches.arena(event.getPlayer().getUniqueId()).orElse(null);
+        if (activity == null || !regions.canBreak(event.getPlayer(), land)) {
             event.setCancelled(true);
             return;
         }
         if (configs.config().getBoolean("protection.restore-liquid-flow", true)
-                && arena.flag(ArenaFlag.TEMPORARY_BLOCK)) temporaryBlocks.capture(arena, event.getBlockClicked());
+                && activity.flag(ArenaFlag.TEMPORARY_BLOCK)) temporaryBlocks.capture(activity, event.getBlockClicked());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onLiquidFlow(BlockFromToEvent event) {
-        Arena arena = regions.arena(event.getBlock().getLocation()).orElse(null);
-        if (arena == null || !configs.config().getBoolean("protection.restore-liquid-flow", true)
-                || !arena.flag(ArenaFlag.TEMPORARY_BLOCK)) return;
-        temporaryBlocks.capture(arena, event.getToBlock());
+        Arena land = regions.arena(event.getBlock().getLocation()).orElse(null);
+        if (land == null || !configs.config().getBoolean("protection.restore-liquid-flow", true)) return;
+        for (Arena arena : matches.arenasAt(event.getBlock().getLocation())) {
+            if (arena.flag(ArenaFlag.TEMPORARY_BLOCK)) temporaryBlocks.capture(arena, event.getToBlock());
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreak(BlockBreakEvent event) {
-        Arena arena = regions.arena(event.getBlock().getLocation()).orElse(null);
-        if (arena == null) return;
-        if (!regions.canBreak(event.getPlayer(), arena)) {
+        Arena land = regions.arena(event.getBlock().getLocation()).orElse(null);
+        if (land == null) return;
+        if (regions.maintenanceEditor(event.getPlayer())) return;
+        Arena activity = matches.arena(event.getPlayer().getUniqueId()).orElse(null);
+        if (activity == null || !regions.canBreak(event.getPlayer(), land)) {
             event.setCancelled(true);
             return;
         }
-        if (arena.flag(ArenaFlag.TEMPORARY_BLOCK)) temporaryBlocks.capture(arena, event.getBlock());
+        if (activity.flag(ArenaFlag.TEMPORARY_BLOCK)) temporaryBlocks.capture(activity, event.getBlock());
         event.setDropItems(false);
         event.setExpToDrop(0);
     }
@@ -102,15 +113,17 @@ public final class BlockListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onInteract(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getClickedBlock() == null) return;
-        Arena arena = regions.arena(event.getClickedBlock().getLocation()).orElse(null);
-        if (arena == null) return;
-        if (!matches.isInArena(event.getPlayer().getUniqueId(), arena)) {
+        Arena land = regions.arena(event.getClickedBlock().getLocation()).orElse(null);
+        if (land == null) return;
+        if (regions.maintenanceEditor(event.getPlayer())) return;
+        Arena activity = matches.arena(event.getPlayer().getUniqueId()).orElse(null);
+        if (activity == null) {
             event.setCancelled(true);
             return;
         }
         Material type = event.getClickedBlock().getType();
         if (type == Material.RESPAWN_ANCHOR || type == Material.OBSIDIAN || type == Material.BEDROCK) {
-            if (arena.flag(ArenaFlag.TEMPORARY_BLOCK)) temporaryBlocks.capture(arena, event.getClickedBlock());
+            if (activity.flag(ArenaFlag.TEMPORARY_BLOCK)) temporaryBlocks.capture(activity, event.getClickedBlock());
         }
     }
 }

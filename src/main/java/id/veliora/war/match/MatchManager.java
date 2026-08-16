@@ -69,6 +69,10 @@ public final class MatchManager {
     }
 
     private boolean joinTeam(Player player, MatchMode mode, MatchSize size, MatchTeam team, boolean allowQueue) {
+        if (!configs.config().getBoolean("settings.enabled", true)) {
+            messages.send(player, "maintenance");
+            return false;
+        }
         if (isPlaying(player.getUniqueId())) {
             messages.send(player, "already-playing");
             return false;
@@ -124,6 +128,10 @@ public final class MatchManager {
     }
 
     public boolean joinAllMode(Player player) {
+        if (!configs.config().getBoolean("settings.enabled", true)) {
+            messages.send(player, "maintenance");
+            return false;
+        }
         if (isPlaying(player.getUniqueId())) {
             messages.send(player, "already-playing");
             return false;
@@ -390,6 +398,22 @@ public final class MatchManager {
             Player player = Bukkit.getPlayer(next.get().playerId());
             if (player != null && player.isOnline()) joinTeam(player, mode, size, next.get().team(), false);
         }
+    }
+
+    public java.util.Collection<Arena> arenasAt(Location location) {
+        Set<Arena> active = new HashSet<>();
+        for (Match match : matchesByArena.values()) {
+            if (match.arena().region().contains(location)) active.add(match.arena());
+        }
+        for (Arena arena : allModePlayers.values()) {
+            if (arena.region().contains(location)) active.add(arena);
+        }
+        return active;
+    }
+
+    public boolean modeAvailable(MatchMode mode) {
+        return configs.config().getBoolean("settings.enabled", true)
+                && arenas.forMode(mode).filter(Arena::enabled).filter(Arena::isComplete).isPresent();
     }
 
     public boolean isSuddenDeath(UUID player) {

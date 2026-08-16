@@ -17,10 +17,10 @@ public final class ArenaRegion {
         }
         this.world = first.getWorld().getName();
         this.minX = Math.min(first.getBlockX(), second.getBlockX());
-        this.minY = Math.min(first.getBlockY(), second.getBlockY());
+        this.minY = first.getWorld().getMinHeight();
         this.minZ = Math.min(first.getBlockZ(), second.getBlockZ());
         this.maxX = Math.max(first.getBlockX(), second.getBlockX());
-        this.maxY = Math.max(first.getBlockY(), second.getBlockY());
+        this.maxY = first.getWorld().getMaxHeight() - 1;
         this.maxZ = Math.max(first.getBlockZ(), second.getBlockZ());
     }
 
@@ -38,14 +38,12 @@ public final class ArenaRegion {
         return location.getWorld() != null
                 && location.getWorld().getName().equals(world)
                 && location.getX() >= minX && location.getX() < maxX + 1
-                && location.getY() >= minY && location.getY() < maxY + 1
                 && location.getZ() >= minZ && location.getZ() < maxZ + 1;
     }
 
     public boolean intersects(ArenaRegion other) {
         return world.equals(other.world)
                 && minX <= other.maxX && maxX >= other.minX
-                && minY <= other.maxY && maxY >= other.minY
                 && minZ <= other.maxZ && maxZ >= other.minZ;
     }
 

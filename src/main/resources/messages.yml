@@ -42,3 +42,7 @@ teleport-blocked: '&cTeleport ini tidak diizinkan selama war berlangsung.'
 outside-arena: '&cKamu tidak boleh keluar dari batas arena.'
 cooldown: '&cTunggu &f{time} &csebelum mencoba lagi.'
 usage: '&eGunakan &f/vgwar &euntuk membuka menu. Admin: &f/vgwar help'
+
+maintenance: '&eVelioraWar sedang maintenance. Tunggu admin selesai memperbaiki arena.'
+npc-refill-all-only: '&eNPC refill hanya dapat digunakan ketika kamu sedang bermain di All Mode.'
+npc-refill-sudden: '&cRefill sedang dinonaktifkan karena Sudden Death.'
