@@ -76,26 +76,6 @@ public final class PlayerListener implements Listener {
         if (!changedPosition(event.getFrom(), event.getTo())) return;
         Player player = event.getPlayer();
         Arena arena = matches.arena(player.getUniqueId()).orElse(null);
-        if (arena == null) return;
-        if (configs.config().getBoolean("match.freeze-players", true) && matches.isFrozen(player.getUniqueId())) {
-            player.setVelocity(new org.bukkit.util.Vector(0, 0, 0));
-            Location anchor = freezeAnchors.computeIfAbsent(player.getUniqueId(),
-                    ignored -> event.getFrom().clone()).clone();
-            if (configs.config().getBoolean("match.freeze-allow-look", true)) {
-                anchor.setYaw(event.getTo().getYaw());
-                anchor.setPitch(event.getTo().getPitch());
-            }
-            event.setTo(anchor);
-            return;
-        }
-        freezeAnchors.remove(player.getUniqueId());
-        if (configs.config().getBoolean("void.enabled", true)
-                && arena.flag(ArenaFlag.VOID_TELEPORT)
-                && event.getTo().getY() <= configs.config().getDouble("void.y-level", -64)) {
-            event.setCancelled(true);
-            matches.handleVoid(player);
-            return;
-        }
         if (!arena.region().contains(event.getTo())) {
             event.setTo(event.getFrom());
             if (cooldowns.tryUse(player.getUniqueId(), "outside-message", 2000)) messages.send(player, "outside-arena");

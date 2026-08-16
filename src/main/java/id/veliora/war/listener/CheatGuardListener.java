@@ -143,7 +143,7 @@ public final class CheatGuardListener implements Listener {
             for (int slot = 0; slot < player.getInventory().getSize(); slot++) {
                 ItemStack stack = player.getInventory().getItem(slot);
                 if (stack == null || stack.getType() == Material.AIR || stack.getType() == Material.GLASS_BOTTLE) continue;
-                if (!loadouts.isAllowed(mode, stack.getType())) {
+                if (!loadouts.isLegalKitItem(mode, stack)) {
                     if (configs.config().getBoolean("anti-cheat.illegal-items.remove", true)) player.getInventory().setItem(slot, null);
                     messages.send(player, "illegal-item", Map.of("item", stack.getType().name()));
                 }

@@ -16,6 +16,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.util.EnumMap;
 import java.util.HashSet;
@@ -26,6 +27,7 @@ public final class LoadoutManager {
     private static final Set<Material> PURCHASED_WAR_MATERIALS = Set.of(
             Material.MACE, Material.TRIDENT, Material.ELYTRA, Material.GOLDEN_APPLE,
             Material.FIREWORK_ROCKET, Material.OBSIDIAN, Material.SPLASH_POTION, Material.NETHERITE_SWORD);
+    private static final NamespacedKey KIT_KEY = java.util.Objects.requireNonNull(NamespacedKey.fromString("veliorawar:kit_item"));
     private final ConfigManager configs;
     private final PlayerDataStorage playerData;
     private final EnumMap<MatchMode, Set<Material>> allowed = new EnumMap<>(MatchMode.class);
@@ -49,20 +51,21 @@ public final class LoadoutManager {
         for (String key : items.getKeys(false)) {
             ConfigurationSection section = items.getConfigurationSection(key);
             if (section == null) continue;
-            ItemStack stack = createItem(section);
+            ItemStack stack = createItem(section, mode);
             place(player, stack, section.getString("slot", "0"));
         }
-        applyPurchasedItems(player);
-        if (configs.config().getBoolean("loadouts.fill-empty-slots-with-totems", true)) fillEmptySlotsWithTotems(player);
+        if (configs.config().getBoolean("features.war-items-enabled", false)) applyPurchasedItems(player);
+        int extraTotems = Math.max(0, configs.config().getInt("loadouts.extra-totems", 4));
+        addExtraTotems(player, mode, extraTotems);
         player.updateInventory();
     }
 
-    private void fillEmptySlotsWithTotems(Player player) {
-        for (int slot = 0; slot < player.getInventory().getStorageContents().length; slot++) {
-            ItemStack current = player.getInventory().getItem(slot);
-            if (current == null || current.getType().isAir()) {
-                player.getInventory().setItem(slot, new ItemStack(Material.TOTEM_OF_UNDYING));
-            }
+    private void addExtraTotems(Player player, MatchMode mode, int amount) {
+        for (int count = 0; count < amount; count++) {
+            ItemStack totem = tag(new ItemStack(Material.TOTEM_OF_UNDYING), mode);
+            int empty = player.getInventory().firstEmpty();
+            if (empty < 0) return;
+            player.getInventory().setItem(empty, totem);
         }
     }
 
@@ -105,10 +108,12 @@ public final class LoadoutManager {
         return configs.file("modes.yml").getStringList("modes." + mode.id() + ".description");
     }
 
-    private ItemStack createItem(ConfigurationSection section) {
+    private ItemStack createItem(ConfigurationSection section, MatchMode mode) {
         Material material = Material.matchMaterial(section.getString("material", "STONE"));
         if (material == null) material = Material.STONE;
-        ItemStack stack = new ItemStack(material, Math.max(1, section.getInt("amount", 1)));
+        int amount = Math.max(1, section.getInt("amount", 1));
+        if (material == Material.WATER_BUCKET || material == Material.LAVA_BUCKET) amount = 1;
+        ItemStack stack = new ItemStack(material, Math.min(amount, material.getMaxStackSize()));
         ItemMeta meta = stack.getItemMeta();
         if (section.contains("display-name")) meta.displayName(TextUtil.component(section.getString("display-name")));
         if (!section.getStringList("lore").isEmpty()) {
@@ -134,7 +139,7 @@ public final class LoadoutManager {
             }
         }
         stack.setItemMeta(meta);
-        return stack;
+        return tag(stack, mode);
     }
 
     private void place(Player player, ItemStack stack, String slot) {
@@ -150,6 +155,20 @@ public final class LoadoutManager {
                 else player.getInventory().addItem(stack);
             }
         }
+    }
+
+    public boolean isLegalKitItem(MatchMode mode, ItemStack stack) {
+        if (stack == null || stack.getType().isAir() || stack.getType() == Material.GLASS_BOTTLE
+                || stack.getType() == Material.BUCKET) return true;
+        String owner = stack.getItemMeta().getPersistentDataContainer().get(KIT_KEY, PersistentDataType.STRING);
+        return mode != null && mode.id().equals(owner);
+    }
+
+    private ItemStack tag(ItemStack stack, MatchMode mode) {
+        ItemMeta meta = stack.getItemMeta();
+        meta.getPersistentDataContainer().set(KIT_KEY, PersistentDataType.STRING, mode.id());
+        stack.setItemMeta(meta);
+        return stack;
     }
 
     private void rebuildAllowedMaterials() {
