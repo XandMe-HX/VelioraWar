@@ -46,6 +46,12 @@ public final class FlagGui {
             case VOID_TELEPORT -> Material.ENDER_PEARL;
             case FALL_DAMAGE -> Material.FEATHER;
             case ITEM_DROP -> Material.DROPPER;
+            case ITEM_PICKUP -> Material.HOPPER;
+            case INTERACT -> Material.LEVER;
+            case FIRE_SPREAD -> Material.FLINT_AND_STEEL;
+            case LIQUID_FLOW -> Material.WATER_BUCKET;
+            case PISTON -> Material.PISTON;
+            case MOB_SPAWN -> Material.ZOMBIE_HEAD;
             case KEEP_INVENTORY -> Material.CHEST;
             case ALLOW_TOTEM -> Material.TOTEM_OF_UNDYING;
             case ALLOW_ELYTRA -> Material.ELYTRA;
@@ -65,6 +71,12 @@ public final class FlagGui {
             case VOID_TELEPORT -> "Void Teleport";
             case FALL_DAMAGE -> "Fall Damage";
             case ITEM_DROP -> "Buang Item";
+            case ITEM_PICKUP -> "Ambil Item";
+            case INTERACT -> "Interaksi Block";
+            case FIRE_SPREAD -> "Api Menyebar";
+            case LIQUID_FLOW -> "Aliran Air/Lava";
+            case PISTON -> "Piston";
+            case MOB_SPAWN -> "Mob Spawn";
             case KEEP_INVENTORY -> "Simpan Inventory";
             case ALLOW_TOTEM -> "Totem";
             case ALLOW_ELYTRA -> "Elytra";
