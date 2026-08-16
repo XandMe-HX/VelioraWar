@@ -411,6 +411,28 @@ public final class MatchManager {
         return active;
     }
 
+    public String modeStatus(MatchMode mode) {
+        if (!configs.config().getBoolean("settings.enabled", true)) return "&e● MAINTENANCE";
+        Arena arena = arenas.forMode(mode).orElse(null);
+        if (arena == null || !arena.enabled() || !arena.isComplete()) return "&c● BELUM SIAP";
+        Match match = matchesByArena.get(arena.id());
+        if (match == null) return "&a● SIAP DIMAINKAN";
+        return switch (arena.state()) {
+            case ACTIVE, COUNTDOWN -> "&c● SEDANG BERMAIN";
+            case PREPARING -> "&e● MENUNGGU PEMAIN";
+            case ENDING -> "&6● MENYELESAIKAN MATCH";
+            default -> "&a● SIAP DIMAINKAN";
+        };
+    }
+
+    public String modePopulation(MatchMode mode) {
+        Arena arena = arenas.forMode(mode).orElse(null);
+        Match match = arena == null ? null : matchesByArena.get(arena.id());
+        int inside = match == null ? 0 : match.players().size();
+        int waiting = queue.count(mode);
+        return "&7Di arena: &f" + inside + " &8• &7Antrean: &f" + waiting;
+    }
+
     public boolean modeAvailable(MatchMode mode) {
         return configs.config().getBoolean("settings.enabled", true)
                 && arenas.forMode(mode).filter(Arena::enabled).filter(Arena::isComplete).isPresent();
