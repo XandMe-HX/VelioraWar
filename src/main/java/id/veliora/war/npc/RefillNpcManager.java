@@ -18,6 +18,9 @@ import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public final class RefillNpcManager implements NpcHook {
     private final VelioraWarPlugin plugin;
@@ -26,6 +29,7 @@ public final class RefillNpcManager implements NpcHook {
     private final NamespacedKey npcKey;
     private final NamespacedKey hologramKey;
     private BukkitTask lookTask;
+    private final Map<UUID, String> activeNpcs = new HashMap<>();
 
     public RefillNpcManager(VelioraWarPlugin plugin, ConfigManager configs, ArenaManager arenas) {
         this.plugin = plugin;
@@ -37,6 +41,7 @@ public final class RefillNpcManager implements NpcHook {
     }
 
     public void spawnAll() {
+        activeNpcs.clear();
         Bukkit.getWorlds().forEach(world -> world.getEntities().stream()
                 .filter(entity -> entity.getPersistentDataContainer().has(npcKey)
                         || entity.getPersistentDataContainer().has(hologramKey))
@@ -95,6 +100,7 @@ public final class RefillNpcManager implements NpcHook {
             villager.customName(TextUtil.component(configs.config().getString("npc.name", "&e&l[ REFILL ITEMS ]")));
             villager.setCustomNameVisible(true);
             villager.getPersistentDataContainer().set(npcKey, PersistentDataType.STRING, id);
+            activeNpcs.put(villager.getUniqueId(), id);
         });
         location.getWorld().spawn(location.clone().add(0, 2.2, 0), ArmorStand.class, stand -> {
             stand.setInvisible(true);
@@ -114,31 +120,32 @@ public final class RefillNpcManager implements NpcHook {
             String hologram = entity.getPersistentDataContainer().get(hologramKey, PersistentDataType.STRING);
             return id.equals(npc) || id.equals(hologram);
         }).forEach(Entity::remove));
+        activeNpcs.values().removeIf(id::equals);
     }
 
     private void startLookTask() {
         if (lookTask != null) lookTask.cancel();
         lookTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             double range = Math.max(2.0D, configs.config().getDouble("npc.look-range", 10.0D));
-            for (org.bukkit.World world : Bukkit.getWorlds()) {
-                for (Entity entity : world.getEntities()) {
-                    String id = entity.getPersistentDataContainer().get(npcKey, PersistentDataType.STRING);
-                    if (!(entity instanceof Villager villager) || id == null) continue;
-                    Location home = home(id);
-                    if (home != null && home.getWorld() == villager.getWorld()
-                            && villager.getLocation().distanceSquared(home) > 0.09D) {
-                        villager.teleport(home);
-                    }
-                    villager.setVelocity(new Vector(0, 0, 0));
-                    Player nearest = world.getPlayers().stream()
-                            .filter(Player::isOnline)
-                            .filter(player -> player.getLocation().distanceSquared(villager.getLocation()) <= range * range)
-                            .min(Comparator.comparingDouble(player ->
-                                    player.getLocation().distanceSquared(villager.getLocation())))
-                            .orElse(null);
-                    if (nearest != null) face(villager, nearest);
+            activeNpcs.entrySet().removeIf(entry -> {
+                Entity entity = Bukkit.getEntity(entry.getKey());
+                if (!(entity instanceof Villager villager) || !entity.isValid()) return true;
+                String id = entry.getValue();
+                Location home = home(id);
+                if (home != null && home.getWorld() == villager.getWorld()
+                        && villager.getLocation().distanceSquared(home) > 0.09D) {
+                    villager.teleport(home);
                 }
-            }
+                villager.setVelocity(new Vector(0, 0, 0));
+                Player nearest = villager.getWorld().getPlayers().stream()
+                        .filter(Player::isOnline)
+                        .filter(player -> player.getLocation().distanceSquared(villager.getLocation()) <= range * range)
+                        .min(Comparator.comparingDouble(player ->
+                                player.getLocation().distanceSquared(villager.getLocation())))
+                        .orElse(null);
+                if (nearest != null) face(villager, nearest);
+                return false;
+            });
         }, 10L, 10L);
     }
 
