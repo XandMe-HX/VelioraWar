@@ -1,15 +1,12 @@
-# Tampilan seluruh GUI. Slot dimulai dari 0.
+# Tampilan GUI VelioraWar. Slot dimulai dari 0.
 main:
-  title: '&8VelioraWar • Pilih Mode'
-  size: 27
+  title: '&#48D9FF&lVelioraWar &8• &fPilih Mode'
+  size: 45
   filler: BLACK_STAINED_GLASS_PANE
-  party-slot: 11
-  items-slot: 13
-  guide-slot: 15
-  leave-slot: 26
+  leave-slot: 44
 
 size:
-  title: '&8Pilih Ukuran • {mode}'
+  title: '&#48D9FF&lPilih Ukuran &8• {mode}'
   size: 27
   filler: GRAY_STAINED_GLASS_PANE
   slots:
@@ -19,31 +16,31 @@ size:
     4vs4: 16
 
 team:
-  title: '&8Pilih Team • {mode} {size}'
-  size: 54
+  title: '&#48D9FF&lPilih Team &8• {mode} {size}'
+  size: 45
   filler: BLACK_STAINED_GLASS_PANE
   red-slot: 11
   blue-slot: 15
 
 all-mode-confirm:
-  title: '&8Masuk All Mode?'
+  title: '&#FFD45A&lMasuk All Mode?'
   size: 27
   filler: BLACK_STAINED_GLASS_PANE
   cancel-slot: 11
   join-slot: 15
 
 flag:
-  title: '&8Flag Arena • {arena}'
+  title: '&8Flag Mode • {arena}'
   size: 54
   filler: GRAY_STAINED_GLASS_PANE
 
 refill:
-  title: '&8Refill Items'
+  title: '&#66E0FF&lRefill Items'
   size: 27
   filler: BLACK_STAINED_GLASS_PANE
   claim-slot: 13
 
 guide:
-  title: '&8Panduan VelioraWar'
+  title: '&#8FFFA3&lPanduan VelioraWar'
   size: 27
   filler: LIGHT_BLUE_STAINED_GLASS_PANE

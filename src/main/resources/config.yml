@@ -109,6 +109,8 @@ npc:
   entity-type: VILLAGER
   invulnerable: true
   silent: true
+  # Jarak NPC menoleh ke pemain terdekat.
+  look-range: 10.0
   # Diatur melalui /vgwar npc set 1 atau /vgwar npc set 2. Tidak terikat arena.
   locations: {}
 
