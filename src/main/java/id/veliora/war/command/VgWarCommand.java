@@ -82,6 +82,7 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
             switch (sub) {
                 case "pos1", "pos2" -> setPosition(player, sub.equals("pos1") ? 1 : 2);
                 case "claim" -> claim(player);
+                case "redefine" -> redefine(player, args);
                 case "spawn" -> setSpawn(player, args);
                 case "set" -> set(player, args);
                 case "enable" -> enable(player);
@@ -111,12 +112,21 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
         arenas.claimGlobal(player);
         configs.config().set("settings.enabled", false);
         plugin.saveConfig();
-        player.sendMessage(TextUtil.component("&8[&bVelioraWar&8] &aSatu land global berhasil disimpan."));
-        player.sendMessage(TextUtil.component("&7Sekarang atur spawn dengan &f/vgwar spawn <mode> <merah|biru>&7."));
+        player.sendMessage(TextUtil.component("&8[&bVelioraWar&8] &aSatu land global berhasil disimpan, penuh dari bawah sampai atas."));
+        player.sendMessage(TextUtil.component("&7Claim selesai. Sekarang cukup atur spawn Sword, Mace, dan CPVP."));
+    }
+
+    private void redefine(Player player, String[] args) {
+        requireArgs(args, 2, "/vgwar redefine confirm");
+        if (!args[1].equalsIgnoreCase("confirm")) throw new IllegalArgumentException("Tambahkan kata confirm");
+        arenas.redefineGlobal(player);
+        configs.config().set("settings.enabled", false);
+        plugin.saveConfig();
+        player.sendMessage(TextUtil.component("&8[&bVelioraWar&8] &aBatas land berhasil diganti. Spawn dan data pemain tetap aman."));
     }
 
     private void setSpawn(Player player, String[] args) {
-        requireArgs(args, 3, "/vgwar spawn <sword|mace|cpvp|all> <merah|biru>");
+        requireArgs(args, 3, "/vgwar spawn <sword|mace|cpvp> <merah|biru>");
         MatchMode mode = parseMode(args[1]);
         MatchTeam team = MatchTeam.from(args[2]).orElseThrow(() ->
                 new IllegalArgumentException("Gunakan team merah atau biru"));
@@ -127,7 +137,7 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
         }
         if (team == MatchTeam.RED) arena.redSpawn(player.getLocation());
         else arena.greenSpawn(player.getLocation());
-        arena.enabled(false);
+        arena.enabled(configs.config().getBoolean("settings.enabled", false) && arena.isComplete());
         arenas.save();
         messages.send(player, "spawn-set", Map.of("arena", display(mode), "team", team.displayName()));
     }
@@ -159,7 +169,7 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
         if (!arenas.hasLand()) throw new IllegalStateException("Land VelioraWar belum dibuat");
         player.sendMessage(TextUtil.component("&8&m------------- &b&lVelioraWar &8&m-------------"));
         player.sendMessage(TextUtil.component("&7Status: " + (arenas.maintenance() ? "&eMAINTENANCE" : "&aAKTIF")));
-        for (MatchMode mode : MatchMode.values()) {
+        for (MatchMode mode : MatchMode.playable()) {
             Arena arena = arenas.forMode(mode).orElse(null);
             if (arena == null) continue;
             player.sendMessage(TextUtil.component("&f" + display(mode)
@@ -170,9 +180,7 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
     }
 
     private void flag(Player player, String[] args) {
-        requireArgs(args, 2, "/vgwar flag <sword|mace|cpvp|all>");
-        flagGui.open(player, arenas.forMode(parseMode(args[1])).orElseThrow(() ->
-                new IllegalStateException("Land belum dibuat")));
+        flagGui.open(player, arenas.globalArena().orElseThrow(() -> new IllegalStateException("Land belum dibuat")));
     }
 
     private void npc(Player player, String[] args) {
@@ -242,8 +250,10 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
     }
 
     private MatchMode parseMode(String value) {
-        return MatchMode.from(value).orElseThrow(() ->
-                new IllegalArgumentException("Mode harus sword, mace, cpvp, atau all"));
+        MatchMode mode = MatchMode.from(value).orElseThrow(() ->
+                new IllegalArgumentException("Mode harus sword, mace, atau cpvp"));
+        if (!mode.isPlayable()) throw new IllegalArgumentException("All Mode sedang dinonaktifkan");
+        return mode;
     }
 
     private String display(MatchMode mode) {
@@ -270,10 +280,10 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
         if (args.length == 1) {
             suggestions.add("menu");
             if (sender.hasPermission("veliorawar.admin")) suggestions.addAll(List.of(
-                    "help", "pos1", "pos2", "claim", "spawn", "set", "enable", "disable",
+                    "help", "pos1", "pos2", "claim", "redefine", "spawn", "set", "enable", "disable",
                     "info", "flag", "npc", "delete", "reload"));
-        } else if (args.length == 2 && List.of("spawn", "flag").contains(args[0].toLowerCase())) {
-            suggestions.addAll(List.of("sword", "mace", "cpvp", "all"));
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("spawn")) {
+            suggestions.addAll(List.of("sword", "mace", "cpvp"));
         } else if (args.length == 3 && args[0].equalsIgnoreCase("spawn")) {
             suggestions.addAll(List.of("merah", "biru"));
         } else if (args.length == 2 && args[0].equalsIgnoreCase("set")) {
@@ -285,9 +295,11 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
         } else if (args.length == 2 && args[0].equalsIgnoreCase("delete")) {
             suggestions.addAll(List.of("spawn", "land"));
         } else if (args.length == 3 && args[0].equalsIgnoreCase("delete") && args[1].equalsIgnoreCase("spawn")) {
-            suggestions.addAll(List.of("sword", "mace", "cpvp", "all"));
+            suggestions.addAll(List.of("sword", "mace", "cpvp"));
         } else if (args.length == 4 && args[0].equalsIgnoreCase("delete") && args[1].equalsIgnoreCase("spawn")) {
             suggestions.addAll(List.of("merah", "biru", "semua"));
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("redefine")) {
+            suggestions.add("confirm");
         } else if (args.length == 3 && args[0].equalsIgnoreCase("delete") && args[1].equalsIgnoreCase("land")) {
             suggestions.add("confirm");
         }
