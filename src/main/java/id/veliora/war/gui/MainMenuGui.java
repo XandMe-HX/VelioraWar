@@ -44,10 +44,10 @@ public final class MainMenuGui {
         inventory.setItem(29, new ItemBuilder(Material.ENDER_CHEST).name("&#FFB347&lWAR ITEMS")
                 .lore("&7Lihat koleksi dan upgrade PvP.", "", "&eKlik untuk membuka")
                 .action("items").hideFlags().build());
-        inventory.setItem(31, new ItemBuilder(Material.CLOCK).name("&#7BE7FF&lSTATUS")
+        inventory.setItem(30, new ItemBuilder(Material.CLOCK).name("&#7BE7FF&lSTATUS")
                 .lore("&7Hijau = siap dimainkan", "&7Merah = spawn belum lengkap", "&7Kuning = maintenance")
                 .action("noop").build());
-        inventory.setItem(33, new ItemBuilder(Material.WRITABLE_BOOK).name("&#8FFFA3&lPANDUAN")
+        inventory.setItem(32, new ItemBuilder(Material.WRITABLE_BOOK).name("&#8FFFA3&lPANDUAN")
                 .lore("&7Cara bermain, aturan, dan keamanan.", "", "&eKlik untuk membaca")
                 .action("guide").build());
         if (matches.isPlaying(player.getUniqueId())) {

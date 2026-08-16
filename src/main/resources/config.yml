@@ -4,6 +4,12 @@
 # Jalankan /vgwar reload setelah mengubah file ini
 # ==============================================
 
+features:
+  # Fitur lama disimpan agar data pemain aman, tetapi tidak ditampilkan dulu.
+  all-mode-enabled: false
+  war-items-enabled: false
+  refill-npc-enabled: false
+
 settings:
   # Bahasa internal plugin. Saat ini tersedia: id
   locale: id
@@ -87,8 +93,9 @@ anti-cheat:
     remove: true
 
 loadouts:
-  # Semua slot kosong setelah kit utama diisi satu totem per slot.
-  fill-empty-slots-with-totems: true
+  # Tidak lagi memenuhi inventory dengan totem. Tambahan dibatasi dan mudah diatur.
+  fill-empty-slots-with-totems: false
+  extra-totems: 4
 
 protection:
   # Block arena tidak hancur oleh crystal, anchor, TNT, creeper, dan ledakan lain

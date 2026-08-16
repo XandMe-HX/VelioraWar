@@ -1,33 +1,23 @@
 package id.veliora.war.match;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 public enum MatchMode {
-    SWORD_DUEL("sword_duel"),
-    MACE_PVP("mace_pvp"),
-    CPVP("cpvp"),
-    ALL_MODE("all_mode");
-
+    SWORD_DUEL("sword_duel"), MACE_PVP("mace_pvp"), CPVP("cpvp"), ALL_MODE("all_mode");
+    private static final List<MatchMode> PLAYABLE = List.of(SWORD_DUEL, MACE_PVP, CPVP);
     private final String id;
-
-    MatchMode(String id) {
-        this.id = id;
-    }
-
-    public String id() {
-        return id;
-    }
-
+    MatchMode(String id) { this.id = id; }
+    public String id() { return id; }
+    public boolean isPlayable() { return this != ALL_MODE; }
+    public static List<MatchMode> playable() { return PLAYABLE; }
     public String shortName() {
         return switch (this) {
-            case SWORD_DUEL -> "sword";
-            case MACE_PVP -> "mace";
-            case CPVP -> "cpvp";
-            case ALL_MODE -> "all";
+            case SWORD_DUEL -> "sword"; case MACE_PVP -> "mace";
+            case CPVP -> "cpvp"; case ALL_MODE -> "all";
         };
     }
-
     public static Optional<MatchMode> from(String value) {
         if (value == null) return Optional.empty();
         String normalized = value.toLowerCase().replace('-', '_').replace(' ', '_');
