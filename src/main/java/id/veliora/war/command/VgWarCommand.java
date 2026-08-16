@@ -176,6 +176,14 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
     }
 
     private void npc(Player player, String[] args) {
+        requireArgs(args, 2, "/vgwar npc <set|delete|cleanup> ...");
+        if (args[1].equalsIgnoreCase("cleanup")) {
+            int removed = npcs.cleanupOrphans();
+            npcs.spawnAll();
+            player.sendMessage(TextUtil.component("&8[&bVelioraWar&8] &aPembersihan selesai. &f"
+                    + removed + " &aNPC/hologram lama dihapus."));
+            return;
+        }
         requireArgs(args, 3, "/vgwar npc <set|delete> <1|2>");
         int slot = parseNpcSlot(args[2]);
         if (args[1].equalsIgnoreCase("set")) {
@@ -184,7 +192,7 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
         } else if (args[1].equalsIgnoreCase("delete")) {
             npcs.removeSlot(slot);
             player.sendMessage(TextUtil.component("&8[&bVelioraWar&8] &eNPC refill " + slot + " berhasil dihapus."));
-        } else throw new IllegalArgumentException("Gunakan /vgwar npc <set|delete> <1|2>");
+        } else throw new IllegalArgumentException("Gunakan /vgwar npc <set|delete|cleanup>");
     }
 
     private void legacyNpc(Player player, String[] args) {
@@ -271,7 +279,7 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
         } else if (args.length == 2 && args[0].equalsIgnoreCase("set")) {
             suggestions.add("stay");
         } else if (args.length == 2 && args[0].equalsIgnoreCase("npc")) {
-            suggestions.addAll(List.of("set", "delete"));
+            suggestions.addAll(List.of("set", "delete", "cleanup"));
         } else if (args.length == 3 && args[0].equalsIgnoreCase("npc")) {
             suggestions.addAll(List.of("1", "2"));
         } else if (args.length == 2 && args[0].equalsIgnoreCase("delete")) {
