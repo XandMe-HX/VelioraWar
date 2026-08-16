@@ -43,6 +43,7 @@ public final class RefillNpcManager implements NpcHook {
 
     public void spawnAll() {
         cleanupOrphans();
+        if (!configs.config().getBoolean("features.refill-npc-enabled", false)) return;
         for (int slot = 1; slot <= 2; slot++) {
             Location location = configuredLocation(slot);
             if (location != null) spawn(location, "global-" + slot);
@@ -76,6 +77,9 @@ public final class RefillNpcManager implements NpcHook {
     }
 
     public void set(int slot, Location location) {
+        if (!configs.config().getBoolean("features.refill-npc-enabled", false)) {
+            throw new IllegalStateException("NPC refill sedang dinonaktifkan bersama All Mode");
+        }
         validateSlot(slot);
         remove("global-" + slot);
         configs.config().set("npc.locations." + slot, null);

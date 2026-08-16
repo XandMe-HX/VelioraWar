@@ -113,7 +113,7 @@ public final class LoadoutManager {
         if (material == null) material = Material.STONE;
         int amount = Math.max(1, section.getInt("amount", 1));
         if (material == Material.WATER_BUCKET || material == Material.LAVA_BUCKET) amount = 1;
-        ItemStack stack = new ItemStack(material, Math.min(amount, material.getMaxStackSize()));
+        ItemStack stack = new ItemStack(material, amount);
         ItemMeta meta = stack.getItemMeta();
         if (section.contains("display-name")) meta.displayName(TextUtil.component(section.getString("display-name")));
         if (!section.getStringList("lore").isEmpty()) {
@@ -134,7 +134,7 @@ public final class LoadoutManager {
                 String[] parts = raw.split(":");
                 PotionEffectType type = PotionEffectType.getByName(parts[0].toUpperCase(Locale.ROOT));
                 if (type != null) potionMeta.addCustomEffect(new PotionEffect(type,
-                        parts.length > 1 ? parseInt(parts[1], 200) : 200,
+                        parts.length > 1 ? Math.min(1200, parseInt(parts[1], 200)) : 200,
                         parts.length > 2 ? parseInt(parts[2], 0) : 0), true);
             }
         }
