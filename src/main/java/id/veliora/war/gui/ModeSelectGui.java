@@ -47,18 +47,26 @@ public final class ModeSelectGui {
                     .action("size:" + mode.id() + ":" + matchSize.id()).hideFlags().build());
         }
         inventory.setItem(22, new ItemBuilder(Material.ARROW).name("&fKembali ke mode")
-                .action("party").build());
+                .action("main").build());
         player.openInventory(inventory);
     }
 
     public void openParty(Player player) {
-        // Main menu baru sudah langsung menampilkan seluruh mode.
-        new MainMenuGui(configs, loadouts, id.veliora.war.VelioraWarPlugin.getInstance().arenaManager() == null
-                ? null : throwUnsupported()).open(player);
-    }
-
-    private id.veliora.war.match.MatchManager throwUnsupported() {
-        throw new IllegalStateException("Gunakan tombol kembali melalui action main");
+        int size = Math.max(27, configs.file("gui.yml").getInt("party.size", 27));
+        Inventory inventory = Bukkit.createInventory(new GuiHolder(), size,
+                TextUtil.component("&#48D9FF&lVelioraWar &8• &fPilih Mode"));
+        MainMenuGui.fill(inventory, Material.BLUE_STAINED_GLASS_PANE);
+        int[] slots = {10, 12, 14, 16};
+        int index = 0;
+        for (MatchMode mode : MatchMode.values()) {
+            Material icon = loadouts.icon(mode);
+            if (icon == null) icon = Material.BARRIER;
+            inventory.setItem(slots[index++], new ItemBuilder(icon).name(loadouts.displayName(mode))
+                    .lore(loadouts.description(mode)).action("mode:" + mode.id()).hideFlags().build());
+        }
+        inventory.setItem(22, new ItemBuilder(Material.ARROW).name("&fKembali")
+                .action("main").build());
+        player.openInventory(inventory);
     }
 
     private void openAllModeConfirm(Player player) {
