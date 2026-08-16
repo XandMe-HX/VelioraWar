@@ -4,17 +4,25 @@ import id.veliora.war.arena.Arena;
 import id.veliora.war.arena.ArenaFlag;
 import id.veliora.war.arena.ArenaManager;
 import id.veliora.war.match.MatchManager;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.entity.EnderCrystal;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 
 public final class DamageListener implements Listener {
+    private record RecentBlast(java.util.UUID owner, Location location, long time) {}
     private final ArenaManager arenas;
     private final MatchManager matches;
+    private final java.util.Map<java.util.UUID, java.util.UUID> crystalOwners = new java.util.HashMap<>();
+    private final java.util.Map<java.util.UUID, RecentBlast> anchorBlasts = new java.util.HashMap<>();
 
     public DamageListener(ArenaManager arenas, MatchManager matches) {
         this.arenas = arenas;
@@ -31,6 +39,10 @@ public final class DamageListener implements Listener {
             return;
         }
         if (activityArena == null) return;
+        if (event.getCause() == EntityDamageEvent.DamageCause.BLOCK_EXPLOSION && friendlyAnchorBlast(victim)) {
+            event.setCancelled(true);
+            return;
+        }
         if (matches.isFrozen(victim.getUniqueId()) || matches.eliminated(victim.getUniqueId())) {
             event.setCancelled(true);
             return;
@@ -48,6 +60,11 @@ public final class DamageListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPvp(EntityDamageByEntityEvent event) {
+        if (event.getEntity() instanceof EnderCrystal crystal) {
+            Player owner = attacker(event);
+            if (owner != null && matches.isPlaying(owner.getUniqueId())) crystalOwners.put(crystal.getUniqueId(), owner.getUniqueId());
+            return;
+        }
         if (!(event.getEntity() instanceof Player victim)) return;
         Player attacker = attacker(event);
         if (attacker == null) return;
@@ -72,6 +89,31 @@ public final class DamageListener implements Listener {
     private Player attacker(EntityDamageByEntityEvent event) {
         if (event.getDamager() instanceof Player player) return player;
         if (event.getDamager() instanceof Projectile projectile && projectile.getShooter() instanceof Player player) return player;
+        if (event.getDamager() instanceof EnderCrystal crystal) {
+            java.util.UUID owner = crystalOwners.get(crystal.getUniqueId());
+            return owner == null ? null : org.bukkit.Bukkit.getPlayer(owner);
+        }
         return null;
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onAnchorUse(PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getClickedBlock() == null
+                || event.getClickedBlock().getType() != Material.RESPAWN_ANCHOR
+                || !matches.isPlaying(event.getPlayer().getUniqueId())) return;
+        anchorBlasts.put(event.getPlayer().getUniqueId(),
+                new RecentBlast(event.getPlayer().getUniqueId(), event.getClickedBlock().getLocation(), System.currentTimeMillis()));
+    }
+
+    private boolean friendlyAnchorBlast(Player victim) {
+        long now = System.currentTimeMillis();
+        anchorBlasts.values().removeIf(blast -> now - blast.time() > 2500L);
+        for (RecentBlast blast : anchorBlasts.values()) {
+            if (blast.location().getWorld() != victim.getWorld()
+                    || blast.location().distanceSquared(victim.getLocation()) > 144.0D) continue;
+            Player owner = org.bukkit.Bukkit.getPlayer(blast.owner());
+            if (owner != null && matches.friendly(owner, victim)) return true;
+        }
+        return false;
     }
 }
