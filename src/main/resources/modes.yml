@@ -67,6 +67,10 @@ modes:
       golden-apple: {material: GOLDEN_APPLE, amount: 12, slot: 8}
       pearl: {material: ENDER_PEARL, amount: 10, slot: 9}
       wind-charge: {material: WIND_CHARGE, amount: 64, slot: 10}
+      wind-charge-2: {material: WIND_CHARGE, amount: 64, slot: 20}
+      wind-charge-3: {material: WIND_CHARGE, amount: 64, slot: 21}
+      wind-charge-4: {material: WIND_CHARGE, amount: 64, slot: 22}
+      wind-charge-5: {material: WIND_CHARGE, amount: 64, slot: 23}
       cobweb: {material: COBWEB, amount: 32, slot: 11}
       water: {material: WATER_BUCKET, amount: 1, slot: 12}
       blocks: {material: COBBLESTONE, amount: 64, slot: 14}
@@ -119,6 +123,10 @@ modes:
       sword: {material: NETHERITE_SWORD, slot: 0, unbreakable: true, enchantments: [SHARPNESS:5, UNBREAKING:3]}
       mace: {material: MACE, slot: 1, unbreakable: true, enchantments: [DENSITY:5, WIND_BURST:3, UNBREAKING:3]}
       wind-charge: {material: WIND_CHARGE, amount: 64, slot: 8}
+      wind-charge-2: {material: WIND_CHARGE, amount: 64, slot: 21}
+      wind-charge-3: {material: WIND_CHARGE, amount: 64, slot: 22}
+      wind-charge-4: {material: WIND_CHARGE, amount: 64, slot: 23}
+      wind-charge-5: {material: WIND_CHARGE, amount: 64, slot: 24}
       crystal: {material: END_CRYSTAL, amount: 64, slot: 2}
       obsidian: {material: OBSIDIAN, amount: 64, slot: 3}
       anchor: {material: RESPAWN_ANCHOR, amount: 64, slot: 4}
