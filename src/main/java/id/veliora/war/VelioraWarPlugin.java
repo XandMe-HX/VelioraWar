@@ -71,7 +71,7 @@ public final class VelioraWarPlugin extends JavaPlugin {
         refillNpcs = new RefillNpcManager(this, configs, arenaManager);
 
         registerCommand(new VgWarCommand(this, arenaManager, configs, messages,
-                mainMenu, flagMenu, refillNpcs, matches));
+                mainMenu, flagMenu, refillNpcs, matches, refillMenu));
 
         PluginManager plugins = getServer().getPluginManager();
         plugins.registerEvents(new PlayerListener(this, configs, messages, matches, inventories,
