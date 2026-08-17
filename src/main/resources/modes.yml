@@ -28,6 +28,9 @@ modes:
       axe: {material: NETHERITE_AXE, slot: 1, unbreakable: true, enchantments: [SHARPNESS:5, UNBREAKING:3]}
       blocks: {material: COBBLESTONE, amount: 64, slot: 2}
       totem: {material: TOTEM_OF_UNDYING, slot: OFFHAND}
+      shield: {material: SHIELD, slot: 17, unbreakable: true, enchantments: [UNBREAKING:3, MENDING:1]}
+      bow: {material: BOW, slot: 18, unbreakable: true, enchantments: [POWER:5, PUNCH:1, FLAME:1, INFINITY:1, UNBREAKING:3]}
+      arrow: {material: ARROW, amount: 1, slot: 19}
       speed: {material: SPLASH_POTION, amount: 10, slot: 3, display-name: '&bSpeed II', potion-color: '55FFFF', potion-effects: [SPEED:1200:1]}
       strength: {material: SPLASH_POTION, amount: 10, slot: 4, display-name: '&cStrength II', potion-color: 'FF5555', potion-effects: [STRENGTH:1200:1]}
       heal: {material: SPLASH_POTION, amount: 10, slot: 5, display-name: '&dHeal II', potion-color: 'FF55FF', potion-effects: [INSTANT_HEALTH:1:1]}
@@ -55,6 +58,9 @@ modes:
       axe: {material: NETHERITE_AXE, slot: 2, unbreakable: true, enchantments: [SHARPNESS:5, UNBREAKING:3]}
       rocket: {material: FIREWORK_ROCKET, amount: 64, slot: 3}
       totem: {material: TOTEM_OF_UNDYING, slot: OFFHAND}
+      shield: {material: SHIELD, slot: 17, unbreakable: true, enchantments: [UNBREAKING:3, MENDING:1]}
+      bow: {material: BOW, slot: 18, unbreakable: true, enchantments: [POWER:5, PUNCH:1, FLAME:1, INFINITY:1, UNBREAKING:3]}
+      arrow: {material: ARROW, amount: 1, slot: 19}
       speed: {material: SPLASH_POTION, amount: 10, slot: 4, display-name: '&bSpeed II', potion-color: '55FFFF', potion-effects: [SPEED:1200:1]}
       strength: {material: SPLASH_POTION, amount: 10, slot: 5, display-name: '&cStrength II', potion-color: 'FF5555', potion-effects: [STRENGTH:1200:1]}
       heal: {material: SPLASH_POTION, amount: 10, slot: 6, display-name: '&dHeal II', potion-color: 'FF55FF', potion-effects: [INSTANT_HEALTH:1:1]}
@@ -78,7 +84,11 @@ modes:
       chest: {material: NETHERITE_CHESTPLATE, slot: CHEST, unbreakable: true, enchantments: [PROTECTION:4, BLAST_PROTECTION:4, UNBREAKING:3]}
       legs: {material: NETHERITE_LEGGINGS, slot: LEGS, unbreakable: true, enchantments: [PROTECTION:4, BLAST_PROTECTION:4, UNBREAKING:3]}
       boots: {material: NETHERITE_BOOTS, slot: BOOTS, unbreakable: true, enchantments: [PROTECTION:4, BLAST_PROTECTION:4, FEATHER_FALLING:4, UNBREAKING:3]}
-      sword: {material: NETHERITE_SWORD, slot: 0, unbreakable: true, enchantments: [SHARPNESS:5, UNBREAKING:3]}
+      sword: {material: NETHERITE_SWORD, slot: 0, unbreakable: true, enchantments: [SHARPNESS:5, FIRE_ASPECT:2, UNBREAKING:3, MENDING:1]}
+      axe: {material: NETHERITE_AXE, slot: 16, unbreakable: true, enchantments: [SHARPNESS:5, EFFICIENCY:5, UNBREAKING:3, MENDING:1]}
+      shield: {material: SHIELD, slot: 17, unbreakable: true, enchantments: [UNBREAKING:3, MENDING:1]}
+      bow: {material: BOW, slot: 18, unbreakable: true, enchantments: [POWER:5, PUNCH:1, FLAME:1, INFINITY:1, UNBREAKING:3]}
+      arrow: {material: ARROW, amount: 1, slot: 19}
       pickaxe: {material: NETHERITE_PICKAXE, slot: 1, unbreakable: true, enchantments: [EFFICIENCY:5, UNBREAKING:3]}
       crystal: {material: END_CRYSTAL, amount: 64, slot: 2}
       obsidian: {material: OBSIDIAN, amount: 64, slot: 3}
