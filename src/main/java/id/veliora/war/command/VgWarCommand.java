@@ -5,6 +5,7 @@ import id.veliora.war.arena.Arena;
 import id.veliora.war.arena.ArenaFlag;
 import id.veliora.war.gui.FlagGui;
 import id.veliora.war.gui.MainMenuGui;
+import id.veliora.war.gui.RefillGui;
 import id.veliora.war.match.MatchManager;
 import id.veliora.war.match.MatchMode;
 import id.veliora.war.match.MatchTeam;
@@ -34,12 +35,13 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
     private final FlagGui flagGui;
     private final RefillNpcManager npcs;
     private final MatchManager matches;
+    private final RefillGui refillGui;
     private final MemberSubCommand member;
     private final AdminSubCommand admin = new AdminSubCommand();
 
     public VgWarCommand(VelioraWarPlugin plugin, id.veliora.war.arena.ArenaManager arenas,
                         id.veliora.war.storage.ConfigManager configs, MessageManager messages,
-                        MainMenuGui menu, FlagGui flagGui, RefillNpcManager npcs, MatchManager matches) {
+                        MainMenuGui menu, FlagGui flagGui, RefillNpcManager npcs, MatchManager matches, RefillGui refillGui) {
         this.plugin = plugin;
         this.arenas = arenas;
         this.configs = configs;
@@ -48,6 +50,7 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
         this.flagGui = flagGui;
         this.npcs = npcs;
         this.matches = matches;
+        this.refillGui = refillGui;
         this.member = new MemberSubCommand(menu);
     }
 
@@ -106,6 +109,17 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
 
     private boolean handleMemberCommand(Player player, String[] args) {
         String sub = args[0].toLowerCase(Locale.ROOT);
+        if (sub.equals("refill")) {
+            Arena arena = matches.arena(player.getUniqueId()).orElse(null);
+            if (arena == null || !matches.isAllMode(player.getUniqueId())) {
+                player.sendMessage(TextUtil.component("&8[&bVelioraWar&8] &c/refill hanya bisa dipakai saat bermain All Mode."));
+            } else if (matches.isSuddenDeath(player.getUniqueId())) {
+                messages.send(player, "npc-refill-sudden");
+            } else {
+                refillGui.open(player, arena);
+            }
+            return true;
+        }
         if (sub.equals("leave")) {
             if (matches.isAllMode(player.getUniqueId())) {
                 long remaining = matches.combatRemaining(player.getUniqueId());
