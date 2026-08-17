@@ -5,6 +5,7 @@ import id.veliora.war.arena.Arena;
 import id.veliora.war.arena.ArenaFlag;
 import id.veliora.war.gui.FlagGui;
 import id.veliora.war.gui.MainMenuGui;
+import id.veliora.war.match.MatchManager;
 import id.veliora.war.match.MatchMode;
 import id.veliora.war.match.MatchTeam;
 import id.veliora.war.npc.RefillNpcManager;
@@ -32,12 +33,13 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
     private final MainMenuGui menu;
     private final FlagGui flagGui;
     private final RefillNpcManager npcs;
+    private final MatchManager matches;
     private final MemberSubCommand member;
     private final AdminSubCommand admin = new AdminSubCommand();
 
     public VgWarCommand(VelioraWarPlugin plugin, id.veliora.war.arena.ArenaManager arenas,
                         id.veliora.war.storage.ConfigManager configs, MessageManager messages,
-                        MainMenuGui menu, FlagGui flagGui, RefillNpcManager npcs) {
+                        MainMenuGui menu, FlagGui flagGui, RefillNpcManager npcs, MatchManager matches) {
         this.plugin = plugin;
         this.arenas = arenas;
         this.configs = configs;
@@ -45,6 +47,7 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
         this.menu = menu;
         this.flagGui = flagGui;
         this.npcs = npcs;
+        this.matches = matches;
         this.member = new MemberSubCommand(menu);
     }
 
@@ -108,7 +111,7 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
                 long remaining = matches.combatRemaining(player.getUniqueId());
                 if (remaining > 0L) player.sendMessage(TextUtil.component("&8[&bVelioraWar&8] &cTunggu " + ((remaining + 999L) / 1000L) + " detik setelah combat sebelum keluar."));
                 else matches.leaveAllMode(player);
-            } else player.sendMessage(TextUtil.component("&8[&bVelioraWar&8] &c/ vgwar leave hanya untuk All Mode."));
+            } else player.sendMessage(TextUtil.component("&8[&bVelioraWar&8] &c/vgwar leave hanya untuk All Mode."));
             return true;
         }
         if (sub.equals("duel")) {
