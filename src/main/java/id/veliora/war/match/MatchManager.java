@@ -48,6 +48,10 @@ public final class MatchManager {
     private final Map<UUID, Match> matchesByPlayer = new HashMap<>();
     private final Map<UUID, Arena> allModePlayers = new HashMap<>();
     private final Set<UUID> internalTeleports = new HashSet<>();
+    private final Map<UUID, Long> combatUntil = new HashMap<>();
+    private final Map<UUID, DuelRequest> duelRequests = new HashMap<>();
+
+    private record DuelRequest(UUID challenger, MatchMode mode, long expiresAt) { }
 
     public MatchManager(VelioraWarPlugin plugin, ConfigManager configs, ArenaManager arenas,
                         MessageManager messages, InventoryManager inventories, LoadoutManager loadouts,
@@ -125,6 +129,67 @@ public final class MatchManager {
         messages.send(player, "joined-team", Map.of("team", team.displayName()));
         if (match.ready()) startCountdown(match);
         return true;
+    }
+
+    public boolean isAllMode(UUID player) { return allModePlayers.containsKey(player); }
+
+    public void tagCombat(Player player) {
+        if (isPlaying(player.getUniqueId())) combatUntil.put(player.getUniqueId(), System.currentTimeMillis() + 10_000L);
+    }
+
+    public long combatRemaining(UUID player) {
+        return Math.max(0L, combatUntil.getOrDefault(player, 0L) - System.currentTimeMillis());
+    }
+
+    public boolean leaveAllMode(Player player) {
+        if (!isAllMode(player.getUniqueId())) return false;
+        if (combatRemaining(player.getUniqueId()) > 0L) return false;
+        leave(player, true);
+        return true;
+    }
+
+    public boolean requestDuel(Player challenger, Player target, MatchMode mode) {
+        if (!mode.isPlayable() || mode == MatchMode.ALL_MODE || challenger.equals(target)
+                || isPlaying(challenger.getUniqueId()) || isPlaying(target.getUniqueId())
+                || combatRemaining(challenger.getUniqueId()) > 0L || combatRemaining(target.getUniqueId()) > 0L
+                || duelRequests.containsKey(target.getUniqueId())) return false;
+        duelRequests.put(target.getUniqueId(), new DuelRequest(challenger.getUniqueId(), mode, System.currentTimeMillis() + 60_000L));
+        return true;
+    }
+
+    public Optional<MatchMode> acceptDuel(Player target) {
+        DuelRequest request = duelRequests.remove(target.getUniqueId());
+        if (request == null || request.expiresAt() < System.currentTimeMillis()) return Optional.empty();
+        Player challenger = Bukkit.getPlayer(request.challenger());
+        if (challenger == null || !challenger.isOnline() || isPlaying(challenger.getUniqueId()) || isPlaying(target.getUniqueId())) return Optional.empty();
+        if (!joinTeam(challenger, request.mode(), MatchSize.ONE_VS_ONE, MatchTeam.RED, false)) return Optional.empty();
+        if (!joinTeam(target, request.mode(), MatchSize.ONE_VS_ONE, MatchTeam.GREEN, false)) {
+            leave(challenger, false);
+            return Optional.empty();
+        }
+        cooldowns.set(challenger.getUniqueId(), "duel", 60_000L);
+        cooldowns.set(target.getUniqueId(), "duel", 60_000L);
+        return Optional.of(request.mode());
+    }
+
+    public Optional<UUID> denyDuel(Player target) {
+        DuelRequest request = duelRequests.remove(target.getUniqueId());
+        if (request == null) return Optional.empty();
+        cooldowns.set(target.getUniqueId(), "duel", 60_000L);
+        cooldowns.set(request.challenger(), "duel", 60_000L);
+        return Optional.of(request.challenger());
+    }
+
+    public Optional<UUID> cancelDuel(Player challenger) {
+        for (Map.Entry<UUID, DuelRequest> entry : new ArrayList<>(duelRequests.entrySet())) {
+            if (entry.getValue().challenger().equals(challenger.getUniqueId())) {
+                duelRequests.remove(entry.getKey());
+                cooldowns.set(challenger.getUniqueId(), "duel", 60_000L);
+                cooldowns.set(entry.getKey(), "duel", 60_000L);
+                return Optional.of(entry.getKey());
+            }
+        }
+        return Optional.empty();
     }
 
     public boolean joinAllMode(Player player) {
