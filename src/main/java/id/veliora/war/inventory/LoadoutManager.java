@@ -52,12 +52,34 @@ public final class LoadoutManager {
             ConfigurationSection section = items.getConfigurationSection(key);
             if (section == null) continue;
             ItemStack stack = createItem(section, mode);
-            place(player, stack, section.getString("slot", "0"));
+            if (stack.getType() == Material.SPLASH_POTION && stack.getAmount() > 1) {
+                int count = stack.getAmount();
+                stack.setAmount(1);
+                place(player, stack, section.getString("slot", "0"));
+                for (int potion = 1; potion < count; potion++) {
+                    int empty = player.getInventory().firstEmpty();
+                    if (empty < 0) break;
+                    player.getInventory().setItem(empty, stack.clone());
+                }
+            } else {
+                place(player, stack, section.getString("slot", "0"));
+            }
         }
         if (configs.config().getBoolean("features.war-items-enabled", false)) applyPurchasedItems(player);
         int extraTotems = Math.max(0, configs.config().getInt("loadouts.extra-totems", 4));
         addExtraTotems(player, mode, extraTotems);
+        if (configs.config().getBoolean("loadouts.fill-empty-slots-with-totems", true)) {
+            fillEmptySlotsWithTotems(player, mode);
+        }
         player.updateInventory();
+    }
+
+    private void fillEmptySlotsWithTotems(Player player, MatchMode mode) {
+        for (int slot = 0; slot < player.getInventory().getStorageContents().length; slot++) {
+            if (player.getInventory().getItem(slot) == null || player.getInventory().getItem(slot).getType().isAir()) {
+                player.getInventory().setItem(slot, tag(new ItemStack(Material.TOTEM_OF_UNDYING), mode));
+            }
+        }
     }
 
     private void addExtraTotems(Player player, MatchMode mode, int amount) {
