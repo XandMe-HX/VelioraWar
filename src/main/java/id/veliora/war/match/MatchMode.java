@@ -6,11 +6,11 @@ import java.util.Optional;
 
 public enum MatchMode {
     SWORD_DUEL("sword_duel"), MACE_PVP("mace_pvp"), CPVP("cpvp"), ALL_MODE("all_mode");
-    private static final List<MatchMode> PLAYABLE = List.of(SWORD_DUEL, MACE_PVP, CPVP);
+    private static final List<MatchMode> PLAYABLE = List.of(SWORD_DUEL, MACE_PVP, CPVP, ALL_MODE);
     private final String id;
     MatchMode(String id) { this.id = id; }
     public String id() { return id; }
-    public boolean isPlayable() { return this != ALL_MODE; }
+    public boolean isPlayable() { return true; }
     public static List<MatchMode> playable() { return PLAYABLE; }
     public String shortName() {
         return switch (this) {
