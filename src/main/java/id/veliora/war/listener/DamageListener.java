@@ -51,6 +51,7 @@ public final class DamageListener implements Listener {
             event.setCancelled(true);
             return;
         }
+        if (event.getFinalDamage() > 0.0D) matches.tagCombat(victim);
         if ((event.getCause() == EntityDamageEvent.DamageCause.BLOCK_EXPLOSION
                 || event.getCause() == EntityDamageEvent.DamageCause.ENTITY_EXPLOSION)
                 && !activityArena.flag(ArenaFlag.EXPLOSION_DAMAGE)) {
@@ -84,6 +85,8 @@ public final class DamageListener implements Listener {
             return;
         }
         matches.recordDamage(attacker, victim, event.getFinalDamage());
+        matches.tagCombat(attacker);
+        matches.tagCombat(victim);
     }
 
     private Player attacker(EntityDamageByEntityEvent event) {
