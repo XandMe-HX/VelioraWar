@@ -21,8 +21,8 @@ public final class ModeSelectGui {
     }
 
     public void open(Player player, MatchMode mode) {
-        if (!mode.isPlayable()) {
-            player.sendMessage(TextUtil.component("&cAll Mode sedang dinonaktifkan."));
+        if (mode == MatchMode.ALL_MODE) {
+            openAllModeConfirm(player);
             return;
         }
         int size = Math.max(27, configs.file("gui.yml").getInt("size.size", 27));
@@ -69,7 +69,7 @@ public final class ModeSelectGui {
         player.openInventory(inventory);
     }
 
-    private void openAllModeConfirm(Player player) {
+    public void openAllModeConfirm(Player player) {
         int size = Math.max(27, configs.file("gui.yml").getInt("all-mode-confirm.size", 27));
         Inventory inventory = Bukkit.createInventory(new GuiHolder(), size,
                 TextUtil.component(configs.file("gui.yml").getString("all-mode-confirm.title", "&#FFD45A&lMasuk All Mode?")));
