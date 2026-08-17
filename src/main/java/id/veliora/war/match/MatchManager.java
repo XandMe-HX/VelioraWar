@@ -152,6 +152,8 @@ public final class MatchManager {
         if (!mode.isPlayable() || mode == MatchMode.ALL_MODE || challenger.equals(target)
                 || isPlaying(challenger.getUniqueId()) || isPlaying(target.getUniqueId())
                 || combatRemaining(challenger.getUniqueId()) > 0L || combatRemaining(target.getUniqueId()) > 0L
+                || cooldowns.remaining(challenger.getUniqueId(), "duel") > 0L
+                || cooldowns.remaining(target.getUniqueId(), "duel") > 0L
                 || duelRequests.containsKey(target.getUniqueId())) return false;
         duelRequests.put(target.getUniqueId(), new DuelRequest(challenger.getUniqueId(), mode, System.currentTimeMillis() + 60_000L));
         return true;
@@ -373,6 +375,7 @@ public final class MatchManager {
 
     private void leaveInternal(Player player, boolean notify, boolean restoreInventory) {
         UUID uuid = player.getUniqueId();
+        combatUntil.remove(uuid);
         boolean wasQueued = queue.contains(uuid);
         queue.remove(uuid);
         Arena allArena = allModePlayers.remove(uuid);
@@ -581,6 +584,8 @@ public final class MatchManager {
         matchesByArena.clear();
         matchesByPlayer.clear();
         allModePlayers.clear();
+        combatUntil.clear();
+        duelRequests.clear();
     }
 
     private void forEach(Match match, java.util.function.Consumer<Player> action) {
