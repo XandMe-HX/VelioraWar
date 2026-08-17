@@ -156,11 +156,20 @@ public final class PlayerListener implements Listener {
         Arena arena = matches.arena(player.getUniqueId()).orElse(null);
         if (arena == null) return;
 
-        // A player must always have one safe escape route from an activity.
+        // /vgwar leave hanya boleh dipakai di All Mode dan selalu menghormati combat-tag.
         String command = event.getMessage().trim().toLowerCase(java.util.Locale.ROOT);
         if (command.equals("/vgwar leave") || command.equals("/vgwar keluar")) {
             event.setCancelled(true);
-            matches.leave(player, true);
+            if (!matches.isAllMode(player.getUniqueId())) {
+                player.sendMessage(id.veliora.war.util.TextUtil.component("&8[&bVelioraWar&8] &c/vgwar leave hanya untuk All Mode."));
+                return;
+            }
+            long remaining = matches.combatRemaining(player.getUniqueId());
+            if (remaining > 0L) {
+                player.sendMessage(id.veliora.war.util.TextUtil.component("&8[&bVelioraWar&8] &cTunggu " + ((remaining + 999L) / 1000L) + " detik setelah combat sebelum keluar."));
+                return;
+            }
+            matches.leaveAllMode(player);
             return;
         }
         if (arena.flag(ArenaFlag.ALLOW_COMMAND)) return;

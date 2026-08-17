@@ -9,6 +9,8 @@ features:
   all-mode-enabled: true
   war-items-enabled: false
   refill-npc-enabled: true
+  # Gunakan ZNPCS + /vgwar refill; NPC bawaan dimatikan agar tidak dobel.
+  native-refill-npc-enabled: false
 
 settings:
   # Bahasa internal plugin. Saat ini tersedia: id
