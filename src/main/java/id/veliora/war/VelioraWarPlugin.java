@@ -85,7 +85,10 @@ public final class VelioraWarPlugin extends JavaPlugin {
         plugins.registerEvents(cheatGuard, this);
         cheatGuard.start();
 
-        getServer().getScheduler().runTask(this, refillNpcs::spawnAll);
+        // ZNPCS menangani NPC refill. NPC bawaan hanya aktif jika memang diminta di config.
+        if (configs.config().getBoolean("features.native-refill-npc-enabled", false)) {
+            getServer().getScheduler().runTask(this, refillNpcs::spawnAll);
+        }
         getServer().getScheduler().runTaskTimer(this, cooldowns::cleanup, 1200L, 1200L);
         getLogger().info("VelioraWar aktif. " + arenaManager.all().size() + " arena berhasil dimuat.");
     }
@@ -105,7 +108,7 @@ public final class VelioraWarPlugin extends JavaPlugin {
         configs.reload();
         arenaManager.reload();
         loadouts.reload();
-        refillNpcs.spawnAll();
+        if (configs.config().getBoolean("features.native-refill-npc-enabled", false)) refillNpcs.spawnAll();
     }
 
     private void registerCommand(VgWarCommand executor) {
