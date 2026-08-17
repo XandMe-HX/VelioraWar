@@ -60,6 +60,7 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
             else member.execute(player);
             return true;
         }
+        if (sender instanceof Player player && handleMemberCommand(player, args)) return true;
         if (!sender.hasPermission("veliorawar.admin")) {
             messages.send(sender, "no-permission");
             return true;
@@ -98,6 +99,30 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
             player.sendMessage(TextUtil.component("&8[&bVelioraWar&8] &c" + exception.getMessage()));
         }
         return true;
+    }
+
+    private boolean handleMemberCommand(Player player, String[] args) {
+        String sub = args[0].toLowerCase(Locale.ROOT);
+        if (sub.equals("leave")) {
+            if (matches.isAllMode(player.getUniqueId())) {
+                long remaining = matches.combatRemaining(player.getUniqueId());
+                if (remaining > 0L) player.sendMessage(TextUtil.component("&8[&bVelioraWar&8] &cTunggu " + ((remaining + 999L) / 1000L) + " detik setelah combat sebelum keluar."));
+                else matches.leaveAllMode(player);
+            } else player.sendMessage(TextUtil.component("&8[&bVelioraWar&8] &c/ vgwar leave hanya untuk All Mode."));
+            return true;
+        }
+        if (sub.equals("duel")) {
+            if (args.length < 3) { player.sendMessage(TextUtil.component("&cPenggunaan: /vgwar duel <nama> <sword|mace|cpvp>")); return true; }
+            Player target = plugin.getServer().getPlayerExact(args[1]);
+            MatchMode mode = MatchMode.from(args[2]).orElse(null);
+            if (target == null || mode == null || mode == MatchMode.ALL_MODE || !matches.requestDuel(player, target, mode)) player.sendMessage(TextUtil.component("&cDuel tidak dapat dibuat."));
+            else { player.sendMessage(TextUtil.component("&aTantangan dikirim ke &f" + target.getName())); target.sendMessage(TextUtil.component("&8[&bVelioraWar&8] &e" + player.getName() + " &fmenantangmu &b" + display(mode) + "&f. &a/vgwar accept &7atau &c/vgwar deny")); }
+            return true;
+        }
+        if (sub.equals("accept")) { if (matches.acceptDuel(player).isEmpty()) player.sendMessage(TextUtil.component("&cTidak ada tantangan duel yang aktif.")); return true; }
+        if (sub.equals("deny")) { matches.denyDuel(player).ifPresentOrElse(uuid -> { Player sender = plugin.getServer().getPlayer(uuid); if (sender != null) sender.sendMessage(TextUtil.component("&cTantangan duel ditolak.")); }, () -> player.sendMessage(TextUtil.component("&cTidak ada tantangan duel yang aktif."))); return true; }
+        if (sub.equals("cancel")) { matches.cancelDuel(player).ifPresentOrElse(uuid -> { Player target = plugin.getServer().getPlayer(uuid); if (target != null) target.sendMessage(TextUtil.component("&eTantangan duel dibatalkan.")); player.sendMessage(TextUtil.component("&eTantangan dibatalkan.")); }, () -> player.sendMessage(TextUtil.component("&cTidak ada tantangan duel yang aktif."))); return true; }
+        return false;
     }
 
     private void setPosition(Player player, int number) {
