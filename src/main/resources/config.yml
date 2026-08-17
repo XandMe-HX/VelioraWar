@@ -6,9 +6,9 @@
 
 features:
   # Fitur lama disimpan agar data pemain aman, tetapi tidak ditampilkan dulu.
-  all-mode-enabled: false
+  all-mode-enabled: true
   war-items-enabled: false
-  refill-npc-enabled: false
+  refill-npc-enabled: true
 
 settings:
   # Bahasa internal plugin. Saat ini tersedia: id
@@ -94,8 +94,8 @@ anti-cheat:
 
 loadouts:
   # Tidak lagi memenuhi inventory dengan totem. Tambahan dibatasi dan mudah diatur.
-  fill-empty-slots-with-totems: false
-  extra-totems: 4
+  fill-empty-slots-with-totems: true
+  extra-totems: 0
 
 protection:
   # Block arena tidak hancur oleh crystal, anchor, TNT, creeper, dan ledakan lain

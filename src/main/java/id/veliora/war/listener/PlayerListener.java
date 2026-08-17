@@ -76,6 +76,15 @@ public final class PlayerListener implements Listener {
         if (!changedPosition(event.getFrom(), event.getTo())) return;
         Player player = event.getPlayer();
         Arena arena = matches.arena(player.getUniqueId()).orElse(null);
+        if (configs.config().getBoolean("void.enabled", true)
+                && player.getLocation().getY() <= configs.config().getDouble("void.y-level", -64.0D)) {
+            if (arena != null && arena.flag(ArenaFlag.VOID_TELEPORT)) {
+                matches.handleVoid(player);
+            } else if (arena == null && matches.isWithinLand(player.getLocation())) {
+                matches.teleportToStay(player);
+            }
+            return;
+        }
         // Player biasa tidak memiliki arena aktif. Jangan pernah membaca region dari nilai null.
         if (arena == null) {
             freezeAnchors.remove(player.getUniqueId());
