@@ -438,6 +438,20 @@ public final class MatchManager {
                 && arenas.forMode(mode).filter(Arena::enabled).filter(Arena::isComplete).isPresent();
     }
 
+    public boolean isWithinLand(Location location) {
+        return location != null && arenas.at(location).isPresent();
+    }
+
+    public void teleportToStay(Player player) {
+        Location stay = configs.stay();
+        if (stay == null) return;
+        player.setFallDistance(0.0F);
+        double maxHealth = player.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH) == null
+                ? 20.0D : player.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue();
+        if (!player.isDead()) player.setHealth(Math.min(maxHealth, Math.max(1.0D, player.getHealth())));
+        teleportInternal(player, stay);
+    }
+
     public boolean isSuddenDeath(UUID player) {
         Match match = matchesByPlayer.get(player);
         return match != null && match.suddenDeath();
