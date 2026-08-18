@@ -17,6 +17,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
+import org.bukkit.event.entity.EntityMountEvent;
 import org.bukkit.event.entity.EntityResurrectEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -172,6 +173,14 @@ public final class PlayerListener implements Listener {
             matches.leaveAllMode(player);
             return;
         }
+        if (configs.config().getBoolean("gsit-block.enabled", true)
+                && (command.startsWith("/sit") || command.startsWith("/lay") || command.startsWith("/crawl")
+                || command.startsWith("/bellyflop") || command.startsWith("/spin") || command.startsWith("/cartwheel")
+                || command.startsWith("/pose") || command.startsWith("/emote") || command.startsWith("/gsit"))) {
+            event.setCancelled(true);
+            messages.send(player, "gsit-blocked");
+            return;
+        }
         if (arena.flag(ArenaFlag.ALLOW_COMMAND)) return;
         if (configs.config().getBoolean("war-lock.block-commands", true)) {
             event.setCancelled(true);
@@ -200,6 +209,20 @@ public final class PlayerListener implements Listener {
         matches.arena(player.getUniqueId()).ifPresent(arena -> {
             if (!arena.flag(ArenaFlag.ALLOW_ELYTRA)) event.setCancelled(true);
         });
+    }
+
+    /**
+     * GSit mounts the player on an internal seat entity. Cancelling the mount stops
+     * sit/lay/crawl without blocking normal bucket, pearl, bow, or shield use.
+     */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onMount(EntityMountEvent event) {
+        if (!(event.getEntity() instanceof Player player)
+                || !configs.config().getBoolean("gsit-block.enabled", true)
+                || matches.arena(player.getUniqueId()).isEmpty()) return;
+        event.setCancelled(true);
+        long cooldown = Math.max(250L, configs.config().getLong("gsit-block.message-cooldown-milliseconds", 1500L));
+        if (cooldowns.tryUse(player.getUniqueId(), "gsit-blocked-message", cooldown)) messages.send(player, "gsit-blocked");
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

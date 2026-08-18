@@ -66,6 +66,11 @@ war-lock:
   # Mencegah chat dipenuhi pesan teleport dari plugin lain.
   message-cooldown-milliseconds: 2000
 
+# Mencegah player menggunakan GSit selama sedang bermain, tanpa mengganggu item PvP.
+gsit-block:
+  enabled: true
+  message-cooldown-milliseconds: 1500
+
 void:
   # Pemain yang jatuh di bawah batas ini dianggap tereliminasi
   enabled: true
