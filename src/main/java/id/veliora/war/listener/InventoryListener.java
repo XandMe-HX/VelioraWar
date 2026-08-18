@@ -171,10 +171,10 @@ public final class InventoryListener implements Listener {
 
     private void buy(Player player, String id) {
         java.util.Map<String, Integer> prices = java.util.Map.ofEntries(
-                java.util.Map.entry("sharpness_1", 1000), java.util.Map.entry("sharpness_2", 5000), java.util.Map.entry("density_1", 10000),
-                java.util.Map.entry("mace", 10000), java.util.Map.entry("trident", 15000), java.util.Map.entry("elytra", 20000),
+                java.util.Map.entry("sharpness_1", 1000), java.util.Map.entry("sharpness_2", 5000), java.util.Map.entry("density_1", 3500),
+                java.util.Map.entry("mace", 5000), java.util.Map.entry("trident", 5000), java.util.Map.entry("elytra", 5000),
                 java.util.Map.entry("golden_apple", 3000), java.util.Map.entry("rocket", 1000), java.util.Map.entry("blocks", 5000),
-                java.util.Map.entry("potion", 4000), java.util.Map.entry("sword", 20000));
+                java.util.Map.entry("potion", 4000), java.util.Map.entry("sword", 5000));
         Integer price = prices.get(id);
         if (price == null) return;
         if (playerData.intValue(player.getUniqueId(), "war-items." + id, 0) > 0) { player.sendMessage(TextUtil.component("&eItem ini sudah kamu miliki.")); return; }
