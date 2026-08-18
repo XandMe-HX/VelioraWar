@@ -46,3 +46,5 @@ usage: '&eGunakan &f/vgwar &euntuk membuka menu. Admin: &f/vgwar help'
 maintenance: '&eVelioraWar sedang maintenance. Tunggu admin selesai memperbaiki arena.'
 npc-refill-all-only: '&eNPC refill hanya dapat digunakan ketika kamu sedang bermain di All Mode.'
 npc-refill-sudden: '&cRefill sedang dinonaktifkan karena Sudden Death.'
+
+gsit-blocked: '&cGSit tidak dapat digunakan selama kamu berada di match VelioraWar.'
