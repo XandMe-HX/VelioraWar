@@ -6,6 +6,9 @@ author: XandMe
 description: PvP arena minigame untuk Veliora Gardens
 website: https://github.com/XandMe-HX/VelioraWar
 
+softdepend:
+  - VelioraSuite
+
 commands:
   vgwar:
     description: Membuka menu dan mengelola VelioraWar

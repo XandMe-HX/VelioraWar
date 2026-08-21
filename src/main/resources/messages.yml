@@ -1,5 +1,5 @@
 # Semua pesan mendukung warna legacy dengan tanda &
-prefix: '&8[&bVelioraWar&8] '
+prefix: '&8[&bVelioraWar&8] &r'
 no-permission: '&cKamu tidak memiliki izin untuk menggunakan fitur ini.'
 player-only: '&cCommand ini hanya dapat digunakan oleh player.'
 reload: '&aSemua konfigurasi VelioraWar berhasil dimuat ulang.'
