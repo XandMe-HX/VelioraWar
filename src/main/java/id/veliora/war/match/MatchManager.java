@@ -49,6 +49,7 @@ public final class MatchManager {
     private final Map<UUID, Arena> allModePlayers = new HashMap<>();
     private final Set<UUID> internalTeleports = new HashSet<>();
     private final Map<UUID, Long> combatUntil = new HashMap<>();
+    private final Map<UUID, Long> spawnProtectionUntil = new HashMap<>();
     private final Map<UUID, DuelRequest> duelRequests = new HashMap<>();
 
     private record DuelRequest(UUID challenger, MatchMode mode, long expiresAt) { }
@@ -218,6 +219,13 @@ public final class MatchManager {
         allModePlayers.put(player.getUniqueId(), arena);
         teleportInternal(player, arena.redSpawn());
         loadouts.apply(player, MatchMode.ALL_MODE);
+        long protectionMillis = Math.max(0L,
+                configs.config().getLong("all-mode.spawn-protection-seconds", 5L)) * 1000L;
+        if (protectionMillis > 0L) {
+            spawnProtectionUntil.put(player.getUniqueId(), System.currentTimeMillis() + protectionMillis);
+            player.showTitle(Title.title(TextUtil.component("&a&lAMAN"),
+                    TextUtil.component("&7Perlindungan spawn selama " + (protectionMillis / 1000L) + " detik")));
+        }
         messages.send(player, "fair-play");
         messages.send(player, "joined-all-mode");
         return true;
@@ -525,6 +533,15 @@ public final class MatchManager {
         return match != null && match.suddenDeath();
     }
 
+    public boolean hasSpawnProtection(UUID player) {
+        long until = spawnProtectionUntil.getOrDefault(player, 0L);
+        if (until <= System.currentTimeMillis()) {
+            spawnProtectionUntil.remove(player);
+            return false;
+        }
+        return true;
+    }
+
     public boolean isPlaying(UUID player) {
         return matchesByPlayer.containsKey(player) || allModePlayers.containsKey(player) || queue.contains(player);
     }
@@ -585,6 +602,7 @@ public final class MatchManager {
         matchesByPlayer.clear();
         allModePlayers.clear();
         combatUntil.clear();
+        spawnProtectionUntil.clear();
         duelRequests.clear();
     }
 

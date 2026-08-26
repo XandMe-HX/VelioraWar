@@ -77,8 +77,10 @@ public final class PlayerListener implements Listener {
         if (!changedPosition(event.getFrom(), event.getTo())) return;
         Player player = event.getPlayer();
         Arena arena = matches.arena(player.getUniqueId()).orElse(null);
+        Location destination = event.getTo();
         if (configs.config().getBoolean("void.enabled", true)
-                && player.getLocation().getY() <= configs.config().getDouble("void.y-level", -64.0D)) {
+                && destination != null
+                && destination.getY() <= configs.config().getDouble("void.y-level", -64.0D)) {
             if (arena != null && arena.flag(ArenaFlag.VOID_TELEPORT)) {
                 matches.handleVoid(player);
             } else if (arena == null && matches.isWithinLand(player.getLocation())) {
@@ -134,6 +136,12 @@ public final class PlayerListener implements Listener {
             if (matches.isFrozen(player.getUniqueId())) {
                 freezeAnchors.put(player.getUniqueId(), event.getTo().clone());
             }
+            return;
+        }
+
+        // Pemain tidak boleh meloloskan diri dari freeze memakai teleport apa pun.
+        if (matches.isFrozen(player.getUniqueId())) {
+            event.setCancelled(true);
             return;
         }
 

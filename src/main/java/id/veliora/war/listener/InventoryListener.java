@@ -112,7 +112,14 @@ public final class InventoryListener implements Listener {
             case "buy" -> buy(player, parts.length > 1 ? parts[1] : "");
             case "leave" -> {
                 player.closeInventory();
-                matches.leave(player, true);
+                if (!matches.isAllMode(player.getUniqueId())) {
+                    player.sendMessage(TextUtil.component("&8[&bVelioraWar&8] &cKeluar dari GUI hanya tersedia di All Mode. Duel harus diselesaikan."));
+                } else if (matches.combatRemaining(player.getUniqueId()) > 0L) {
+                    long seconds = (matches.combatRemaining(player.getUniqueId()) + 999L) / 1000L;
+                    player.sendMessage(TextUtil.component("&8[&bVelioraWar&8] &cTunggu " + seconds + " detik setelah combat sebelum keluar."));
+                } else {
+                    matches.leaveAllMode(player);
+                }
             }
             case "flag" -> toggleFlag(player, parts);
             case "refill" -> claimRefill(player, parts[1]);

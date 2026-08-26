@@ -82,7 +82,12 @@ public final class ArenaManager {
     public Optional<Arena> get(String id){MatchMode m=MatchMode.from(id).orElse(null);if(m!=null)return forMode(m);return Optional.ofNullable(arenas.get(normalize(id)));}
     public Optional<Arena> at(Location l){return globalArena().filter(a->a.region().contains(l));}
     public Optional<Arena> available(MatchMode m,MatchSize s){return forMode(m).filter(Arena::enabled).filter(a->a.state()==ArenaState.WAITING);}
-    public Optional<Arena> allMode(){return Optional.empty();}
+    /**
+     * All Mode uses the same global land claim as the other profiles, but it
+     * still needs its own spawn and enabled state. Returning an empty optional
+     * here made a configured All Mode impossible to enter or refill.
+     */
+    public Optional<Arena> allMode(){return forMode(MatchMode.ALL_MODE);}
     public boolean hasLand(){return globalArena().isPresent();}
     public boolean maintenance(){return arenas.values().stream().noneMatch(Arena::enabled);}
     public boolean hasActiveMatch(){return arenas.values().stream().anyMatch(a->a.state()!=ArenaState.WAITING&&a.state()!=ArenaState.DISABLED);}
