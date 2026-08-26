@@ -43,7 +43,8 @@ public final class DamageListener implements Listener {
             event.setCancelled(true);
             return;
         }
-        if (matches.isFrozen(victim.getUniqueId()) || matches.eliminated(victim.getUniqueId())) {
+        if (matches.isFrozen(victim.getUniqueId()) || matches.hasSpawnProtection(victim.getUniqueId())
+                || matches.eliminated(victim.getUniqueId())) {
             event.setCancelled(true);
             return;
         }
@@ -76,7 +77,8 @@ public final class DamageListener implements Listener {
             return;
         }
         if (!victimArena.flag(ArenaFlag.PVP) || matches.isFrozen(victim.getUniqueId())
-                || matches.isFrozen(attacker.getUniqueId()) || matches.eliminated(victim.getUniqueId())) {
+                || matches.isFrozen(attacker.getUniqueId()) || matches.hasSpawnProtection(victim.getUniqueId())
+                || matches.hasSpawnProtection(attacker.getUniqueId()) || matches.eliminated(victim.getUniqueId())) {
             event.setCancelled(true);
             return;
         }

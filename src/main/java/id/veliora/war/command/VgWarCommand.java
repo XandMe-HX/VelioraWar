@@ -168,7 +168,7 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
     }
 
     private void setSpawn(Player player, String[] args) {
-        requireArgs(args, 3, "/vgwar spawn <sword|mace|cpvp> <merah|biru>");
+        requireArgs(args, 3, "/vgwar spawn <sword|mace|cpvp|all> <merah|biru>");
         MatchMode mode = parseMode(args[1]);
         MatchTeam team = MatchTeam.from(args[2]).orElseThrow(() ->
                 new IllegalArgumentException("Gunakan team merah atau biru"));
@@ -176,6 +176,9 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
                 new IllegalStateException("Land belum dibuat. Gunakan pos1, pos2, lalu /vgwar claim"));
         if (!arena.region().contains(player.getLocation())) {
             throw new IllegalStateException("Lokasi spawn harus berada di dalam land VelioraWar");
+        }
+        if (mode == MatchMode.ALL_MODE && team == MatchTeam.GREEN) {
+            throw new IllegalArgumentException("All Mode hanya memakai spawn merah. Gunakan /vgwar spawn all merah");
         }
         if (team == MatchTeam.RED) arena.redSpawn(player.getLocation());
         else arena.greenSpawn(player.getLocation());
@@ -331,7 +334,7 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
                     "help", "pos1", "pos2", "claim", "redefine", "spawn", "set", "enable", "disable",
                     "info", "flag", "npc", "delete", "reload"));
         } else if (args.length == 2 && args[0].equalsIgnoreCase("spawn")) {
-            suggestions.addAll(List.of("sword", "mace", "cpvp"));
+            suggestions.addAll(List.of("sword", "mace", "cpvp", "all"));
         } else if (args.length == 3 && args[0].equalsIgnoreCase("spawn")) {
             suggestions.addAll(List.of("merah", "biru"));
         } else if (args.length == 2 && args[0].equalsIgnoreCase("set")) {
@@ -343,7 +346,7 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
         } else if (args.length == 2 && args[0].equalsIgnoreCase("delete")) {
             suggestions.addAll(List.of("spawn", "land"));
         } else if (args.length == 3 && args[0].equalsIgnoreCase("delete") && args[1].equalsIgnoreCase("spawn")) {
-            suggestions.addAll(List.of("sword", "mace", "cpvp"));
+            suggestions.addAll(List.of("sword", "mace", "cpvp", "all"));
         } else if (args.length == 4 && args[0].equalsIgnoreCase("delete") && args[1].equalsIgnoreCase("spawn")) {
             suggestions.addAll(List.of("merah", "biru", "semua"));
         } else if (args.length == 2 && args[0].equalsIgnoreCase("redefine")) {

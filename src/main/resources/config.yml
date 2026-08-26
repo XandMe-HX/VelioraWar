@@ -48,6 +48,10 @@ match:
     disable-totems: true
     disable-refill: true
 
+all-mode:
+  # Pemain baru masuk All Mode aman dari damage selama beberapa detik.
+  spawn-protection-seconds: 5
+
 queue:
   # Masukkan pemain ke antrean saat semua arena yang cocok sedang dipakai
   enabled: true
