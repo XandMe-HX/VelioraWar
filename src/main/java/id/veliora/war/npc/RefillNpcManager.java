@@ -104,6 +104,15 @@ public final class RefillNpcManager implements NpcHook {
         plugin.saveConfig();
     }
 
+    /** Stops maintenance and removes only NPCs/holograms owned by VelioraWar. */
+    public void shutdown() {
+        if (lookTask != null) {
+            lookTask.cancel();
+            lookTask = null;
+        }
+        cleanupOrphans();
+    }
+
     /** Compatibility for old arena-bound NPC data. New NPCs are global. */
     public void set(Arena arena, Location location) {
         set(1, location);

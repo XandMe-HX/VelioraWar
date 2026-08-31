@@ -96,6 +96,7 @@ public final class VelioraWarPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         if (matches != null) matches.shutdown();
+        if (refillNpcs != null) refillNpcs.shutdown();
         if (temporaryBlocks != null && arenaManager != null) temporaryBlocks.restoreAll(arenaManager.all());
         if (arenaManager != null) arenaManager.save();
         if (playerData != null) playerData.save();
