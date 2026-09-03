@@ -4,6 +4,8 @@ import id.veliora.war.storage.PlayerDataStorage;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
@@ -18,6 +20,12 @@ import java.util.List;
 public final class InventoryManager {
     private final PlayerDataStorage playerData;
     private final Map<UUID, InventoryBackup> backups = new HashMap<>();
+    private final Map<UUID, Map<Attribute, AttributeSnapshot>> attributeBackups = new HashMap<>();
+    private static final Map<Attribute, Double> WAR_DEFAULTS = Map.ofEntries(
+            Map.entry(Attribute.MAX_HEALTH, 20.0D), Map.entry(Attribute.MOVEMENT_SPEED, 0.1D),
+            Map.entry(Attribute.ATTACK_DAMAGE, 1.0D), Map.entry(Attribute.ATTACK_SPEED, 4.0D),
+            Map.entry(Attribute.ARMOR, 0.0D), Map.entry(Attribute.ARMOR_TOUGHNESS, 0.0D),
+            Map.entry(Attribute.KNOCKBACK_RESISTANCE, 0.0D), Map.entry(Attribute.SCALE, 1.0D));
 
     public InventoryManager(PlayerDataStorage playerData) {
         this.playerData = playerData;
@@ -32,6 +40,7 @@ public final class InventoryManager {
         InventoryBackup backup = InventoryBackup.capture(player);
         backups.put(player.getUniqueId(), backup);
         persist(player.getUniqueId(), backup);
+        isolateWarAttributes(player);
         clearForWar(player);
         return true;
     }
@@ -69,6 +78,7 @@ public final class InventoryManager {
         player.setExp(backup.exp());
         player.setFoodLevel(Math.max(0, Math.min(20, backup.food())));
         player.setGameMode(backup.gameMode());
+        restoreWarAttributes(player);
         double maxHealth = player.getAttribute(Attribute.MAX_HEALTH) == null
                 ? 20.0 : player.getAttribute(Attribute.MAX_HEALTH).getValue();
         player.setHealth(Math.max(1.0, Math.min(maxHealth, backup.health())));
@@ -76,6 +86,36 @@ public final class InventoryManager {
         clearPersisted(uuid);
         return true;
     }
+
+    private void isolateWarAttributes(Player player) {
+        Map<Attribute, AttributeSnapshot> snapshots = new HashMap<>();
+        for (Map.Entry<Attribute, Double> entry : WAR_DEFAULTS.entrySet()) {
+            AttributeInstance instance = player.getAttribute(entry.getKey());
+            if (instance == null) continue;
+            snapshots.put(entry.getKey(), new AttributeSnapshot(instance.getBaseValue(), List.copyOf(instance.getModifiers())));
+            for (AttributeModifier modifier : List.copyOf(instance.getModifiers())) instance.removeModifier(modifier);
+            instance.setBaseValue(entry.getValue());
+        }
+        attributeBackups.put(player.getUniqueId(), snapshots);
+        player.setHealth(20.0D);
+    }
+
+    /** Used on disconnect too, so Race/AuraSkills attributes never remain stripped. */
+    public void restoreWarAttributes(Player player) {
+        Map<Attribute, AttributeSnapshot> snapshots = attributeBackups.remove(player.getUniqueId());
+        if (snapshots == null) return;
+        for (Map.Entry<Attribute, AttributeSnapshot> entry : snapshots.entrySet()) {
+            AttributeInstance instance = player.getAttribute(entry.getKey());
+            if (instance == null) continue;
+            for (AttributeModifier modifier : List.copyOf(instance.getModifiers())) instance.removeModifier(modifier);
+            instance.setBaseValue(entry.getValue().base());
+            for (AttributeModifier modifier : entry.getValue().modifiers()) {
+                try { instance.addModifier(modifier); } catch (IllegalArgumentException ignored) { }
+            }
+        }
+    }
+
+    private record AttributeSnapshot(double base, List<AttributeModifier> modifiers) { }
 
     public void restorePending(Player player, Location destination) {
         if (hasBackup(player.getUniqueId())) restore(player, destination);
