@@ -2,20 +2,23 @@
 
 Plugin minigame PvP berbasis Paper untuk Veliora Gardens. Target utama saat ini adalah Paper/Purpur 1.21.8 dan Java 21.
 
-## Fitur V1
+## Fitur V1.1
 
 - GUI penuh melalui `/vgwar`
 - Mode `sword_duel`, `mace_pvp`, `cpvp`, dan `all_mode`
 - Ukuran match 1vs1, 2vs2, 3vs3, dan 4vs4
 - Team merah dan hijau
 - Antrean otomatis saat arena sedang digunakan
-- Freeze, blindness, peringatan fair play, hitung mundur 3-2-1-GO
+- Freeze penuh, proteksi blok/interaksi, sound, blindness, dan hitung mundur 3-2-1-GO
 - Timer pertandingan dan pemenang berdasarkan eliminasi atau total damage
 - Inventory asli disimpan ke `playerdata.yml` dan dikembalikan setelah keluar
 - Temporary block dipulihkan setelah match
 - Ledakan crystal/anchor tetap memberi damage tanpa merusak block arena
 - All Mode bebas dengan NPC refill bawaan dan cooldown 60 detik
-- Cheat Guard untuk item ilegal dan deteksi heuristik auto-totem
+- Cheat Guard ringan untuk item ilegal (interval nyata, bukan task setiap tick)
+- Command-lock hanya untuk peserta aktif; pemain biasa tetap dapat memakai `/lobby`
+- `/vgwar disable` menolak match baru dan memulangkan seluruh peserta dengan inventory aman
+- Permission `veliorawar.owner` untuk land/enable/disable dan `veliorawar.admin` untuk operasional
 - Seluruh teks, GUI, loadout, cooldown, dan aturan utama dapat diubah lewat YAML
 
 ## Build
@@ -24,19 +27,18 @@ Plugin minigame PvP berbasis Paper untuk Veliora Gardens. Target utama saat ini 
 mvn clean package
 ```
 
-JAR hasil build berada di `target/VelioraWar-1.0.0-SNAPSHOT.jar`.
+JAR hasil build berada di `target/VelioraWar.jar`.
 
 ## Setup Arena
 
 ```text
 /vgwar pos1
 /vgwar pos2
-/vgwar claim <arena>
-/vgwar set <arena> <mode> <size>
-/vgwar set <arena> 1
-/vgwar set <arena> 2
-/vgwar flag <arena>
-/vgwar enable <arena>
+/vgwar claim
+/vgwar spawn <sword|mace|cpvp|all> <merah|biru>
+/vgwar set stay
+/vgwar flag
+/vgwar enable
 ```
 
 Keterangan:
@@ -45,8 +47,7 @@ Keterangan:
 - `2` adalah spawn team hijau
 - Untuk `all_mode`, gunakan `/vgwar set <arena> all_mode unlimited`
 - All Mode hanya memerlukan spawn `1`
-- Buat NPC refill dengan `/vgwar setnpc <arena>`
-- `/vgwar setwarp` dan `/vgwar setlobby` menyimpan lokasi yang sama
+- NPC refill bawaan menggunakan entity Bukkit. NPC model PLAYER dengan skin berbeda untuk setiap penonton memerlukan packet NPC (misalnya ProtocolLib/PacketEvents), bukan entity Bukkit biasa.
 
 ## Command Admin
 

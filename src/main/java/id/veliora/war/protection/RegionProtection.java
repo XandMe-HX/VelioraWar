@@ -29,12 +29,14 @@ public final class RegionProtection {
     public boolean canPlace(Player player, Arena ignoredRegionProfile) {
         if (maintenanceEditor(player)) return true;
         Arena activity = matches.arena(player.getUniqueId()).orElse(null);
-        return activity != null && activity.flag(ArenaFlag.BLOCK_PLACE);
+        return activity != null && matches.mayModifyArena(player.getUniqueId())
+                && activity.flag(ArenaFlag.BLOCK_PLACE);
     }
 
     public boolean canBreak(Player player, Arena ignoredRegionProfile) {
         if (maintenanceEditor(player)) return true;
         Arena activity = matches.arena(player.getUniqueId()).orElse(null);
-        return activity != null && activity.flag(ArenaFlag.BLOCK_BREAK);
+        return activity != null && matches.mayModifyArena(player.getUniqueId())
+                && activity.flag(ArenaFlag.BLOCK_BREAK);
     }
 }

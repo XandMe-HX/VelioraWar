@@ -10,6 +10,7 @@ import id.veliora.war.protection.TemporaryBlockManager;
 import id.veliora.war.storage.ConfigManager;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -23,6 +24,11 @@ import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.hanging.HangingBreakByEntityEvent;
+import org.bukkit.event.hanging.HangingPlaceEvent;
+import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
@@ -128,7 +134,8 @@ public final class BlockListener implements Listener {
         if (land == null) return;
         if (regions.maintenanceEditor(event.getPlayer())) return;
         Arena activity = matches.arena(event.getPlayer().getUniqueId()).orElse(null);
-        if (activity == null || !land.flag(ArenaFlag.INTERACT)) {
+        if (activity == null || !matches.mayModifyArena(event.getPlayer().getUniqueId())
+                || !activity.flag(ArenaFlag.INTERACT)) {
             event.setCancelled(true);
             return;
         }
@@ -176,5 +183,44 @@ public final class BlockListener implements Listener {
         if (!(event.getEntity() instanceof Player)) return;
         Arena land = regions.arena(event.getItem().getLocation()).orElse(null);
         if (land != null && !land.flag(ArenaFlag.ITEM_PICKUP)) event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onEntityInteract(PlayerInteractEntityEvent event) {
+        if (regions.arena(event.getRightClicked().getLocation()).isEmpty()) return;
+        if (regions.maintenanceEditor(event.getPlayer())) return;
+        if (!matches.mayModifyArena(event.getPlayer().getUniqueId())) event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onArmorStandManipulate(PlayerArmorStandManipulateEvent event) {
+        if (regions.arena(event.getRightClicked().getLocation()).isEmpty()) return;
+        if (!regions.maintenanceEditor(event.getPlayer())
+                && !matches.mayModifyArena(event.getPlayer().getUniqueId())) event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onHangingPlace(HangingPlaceEvent event) {
+        Player player = event.getPlayer();
+        if (player == null || regions.arena(event.getEntity().getLocation()).isEmpty()) return;
+        if (!regions.maintenanceEditor(player) && !matches.mayModifyArena(player.getUniqueId())) event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onHangingBreak(HangingBreakByEntityEvent event) {
+        if (regions.arena(event.getEntity().getLocation()).isEmpty()) return;
+        Player player = event.getRemover() instanceof Player direct ? direct
+                : event.getRemover() instanceof Projectile projectile && projectile.getShooter() instanceof Player shooter ? shooter : null;
+        if (player == null || (!regions.maintenanceEditor(player)
+                && !matches.mayModifyArena(player.getUniqueId()))) event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onProtectedEntityDamage(EntityDamageByEntityEvent event) {
+        if (event.getEntity() instanceof Player || regions.arena(event.getEntity().getLocation()).isEmpty()) return;
+        Player player = event.getDamager() instanceof Player direct ? direct
+                : event.getDamager() instanceof Projectile projectile && projectile.getShooter() instanceof Player shooter ? shooter : null;
+        if (player != null && !regions.maintenanceEditor(player)
+                && !matches.mayModifyArena(player.getUniqueId())) event.setCancelled(true);
     }
 }
