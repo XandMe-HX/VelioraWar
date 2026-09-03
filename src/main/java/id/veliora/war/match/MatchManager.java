@@ -384,6 +384,7 @@ public final class MatchManager {
 
     public void disconnect(Player player) {
         leaveInternal(player, false, false);
+        inventories.restoreWarAttributes(player);
     }
 
     private void leaveInternal(Player player, boolean notify, boolean restoreInventory) {
