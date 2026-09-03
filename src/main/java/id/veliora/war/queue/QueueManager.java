@@ -45,6 +45,10 @@ public final class QueueManager {
                 .mapToInt(entry -> entry.getValue().size()).sum();
     }
 
+    public void clear() {
+        queues.clear();
+    }
+
     private String key(MatchMode mode, MatchSize size) {
         return mode.id() + ':' + size.id();
     }

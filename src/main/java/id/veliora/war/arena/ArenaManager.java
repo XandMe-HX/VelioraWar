@@ -92,7 +92,7 @@ public final class ArenaManager {
     public boolean maintenance(){return arenas.values().stream().noneMatch(Arena::enabled);}
     public boolean hasActiveMatch(){return arenas.values().stream().anyMatch(a->a.state()!=ArenaState.WAITING&&a.state()!=ArenaState.DISABLED);}
     public int enableCompleteProfiles(){int n=0;for(Arena a:arenas.values()){boolean c=a.isComplete();a.enabled(c);if(c)n++;}save();return n;}
-    public void disableAll(){if(hasActiveMatch())throw new IllegalStateException("Masih ada pertandingan aktif. Tunggu selesai sebelum maintenance");arenas.values().forEach(a->a.enabled(false));save();}
+    public void disableAll(){arenas.values().forEach(a->{a.enabled(false);a.state(ArenaState.DISABLED);});save();}
     public void deleteLand(){if(hasActiveMatch())throw new IllegalStateException("Masih ada pertandingan aktif. Land tidak boleh dihapus");arenas.clear();save();}
     public Collection<Arena> all(){return List.copyOf(arenas.values());}
     public List<String> ids(){return new ArrayList<>(arenas.keySet());}

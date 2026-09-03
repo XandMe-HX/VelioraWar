@@ -27,6 +27,8 @@ match:
   duration-seconds: 600
   # Durasi hitung mundur sebelum pemain boleh bergerak
   countdown-seconds: 4
+  countdown-sound: BLOCK_NOTE_BLOCK_HAT
+  start-sound: ENTITY_PLAYER_LEVELUP
   # Pemain benar-benar dikunci di koordinat spawn selama countdown.
   freeze-players: true
   # Player masih boleh menggerakkan kamera saat tubuhnya dibekukan.
@@ -63,6 +65,8 @@ queue:
 war-lock:
   # Blok seluruh command player: /tp, /home, /spawn, /msg, /vgwar, dan command plugin lain.
   block-commands: true
+  allowed-commands:
+    - vgwar leave
   # Blok teleport dari luar plugin: command, plugin lain, ender pearl, chorus fruit, dan sejenisnya.
   block-external-teleport: true
   # Ender pearl tetap boleh selama tujuan masih berada di dalam claim arena.
@@ -125,6 +129,7 @@ npc:
   name: '&e&l[ REFIL ITEMS ]'
   hologram: '&b&lᴄʟɪᴄᴋ ᴛᴏ ʀᴇꜰɪʟ'
   entity-type: VILLAGER
+  skin-mode: VILLAGER
   invulnerable: true
   silent: true
   # Jarak NPC menoleh ke pemain terdekat.

@@ -36,7 +36,6 @@ public final class CheatGuardListener implements Listener {
     private final Map<UUID, Integer> strikes = new HashMap<>();
     private final Map<UUID, Long> lastStrikeAt = new HashMap<>();
     private BukkitTask scanner;
-    private int tick;
 
     public CheatGuardListener(VelioraWarPlugin plugin, ConfigManager configs, MessageManager messages,
                               MatchManager matches, LoadoutManager loadouts) {
@@ -49,7 +48,8 @@ public final class CheatGuardListener implements Listener {
 
     public void start() {
         if (scanner != null) scanner.cancel();
-        scanner = Bukkit.getScheduler().runTaskTimer(plugin, this::scan, 1L, 1L);
+        int interval = Math.max(5, configs.config().getInt("settings.illegal-item-scan-ticks", 20));
+        scanner = Bukkit.getScheduler().runTaskTimer(plugin, this::scan, interval, interval);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -89,9 +89,7 @@ public final class CheatGuardListener implements Listener {
     private void scan() {
         if (!configs.config().getBoolean("anti-cheat.enabled", true)) return;
         // Detektor auto-totem lama sengaja tidak dijalankan; totem normal tidak boleh false alert.
-        tick++;
-        int interval = Math.max(5, configs.config().getInt("settings.illegal-item-scan-ticks", 20));
-        if (tick % interval == 0 && configs.config().getBoolean("anti-cheat.illegal-items.enabled", true)) scanItems();
+        if (configs.config().getBoolean("anti-cheat.illegal-items.enabled", true)) scanItems();
     }
 
     private void scanAutoTotem() {

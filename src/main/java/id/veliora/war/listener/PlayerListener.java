@@ -119,7 +119,7 @@ public final class PlayerListener implements Listener {
     public void onTeleport(PlayerTeleportEvent event) {
         Player player = event.getPlayer();
         Arena arena = matches.arena(player.getUniqueId()).orElse(null);
-        if (arena == null) return;
+        if (arena == null || !matches.isParticipant(player.getUniqueId())) return;
 
         // Teleport yang dipanggil oleh VelioraWar (spawn, void, hasil match) harus tetap jalan.
         if (matches.consumeInternalTeleport(player.getUniqueId())) {
@@ -163,7 +163,7 @@ public final class PlayerListener implements Listener {
     public void onCommand(PlayerCommandPreprocessEvent event) {
         Player player = event.getPlayer();
         Arena arena = matches.arena(player.getUniqueId()).orElse(null);
-        if (arena == null) return;
+        if (arena == null || !matches.isParticipant(player.getUniqueId())) return;
 
         // /vgwar leave hanya boleh dipakai di All Mode dan selalu menghormati combat-tag.
         String command = event.getMessage().trim().toLowerCase(java.util.Locale.ROOT);
@@ -190,10 +190,20 @@ public final class PlayerListener implements Listener {
             return;
         }
         if (arena.flag(ArenaFlag.ALLOW_COMMAND)) return;
+        if (allowedDuringWar(command)) return;
         if (configs.config().getBoolean("war-lock.block-commands", true)) {
             event.setCancelled(true);
             messages.send(player, "command-blocked");
         }
+    }
+
+    private boolean allowedDuringWar(String command) {
+        for (String allowed : configs.config().getStringList("war-lock.allowed-commands")) {
+            String normalized = allowed.startsWith("/") ? allowed.toLowerCase(java.util.Locale.ROOT)
+                    : "/" + allowed.toLowerCase(java.util.Locale.ROOT);
+            if (command.equals(normalized) || command.startsWith(normalized + " ")) return true;
+        }
+        return false;
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

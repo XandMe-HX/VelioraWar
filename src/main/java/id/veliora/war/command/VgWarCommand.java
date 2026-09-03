@@ -72,6 +72,10 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
             return true;
         }
         String sub = args[0].toLowerCase(Locale.ROOT);
+        if (ownerOnly(sub, args) && !sender.hasPermission("veliorawar.owner")) {
+            sender.sendMessage(TextUtil.component("&8[&bVelioraWar&8] &cPerintah ini khusus Owner."));
+            return true;
+        }
         if (sub.equals("help")) {
             admin.sendHelp(sender);
             return true;
@@ -204,10 +208,17 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
     }
 
     private void disable(Player player) {
-        arenas.disableAll();
         configs.config().set("settings.enabled", false);
         plugin.saveConfig();
-        player.sendMessage(TextUtil.component("&8[&bVelioraWar&8] &eMaintenance aktif. Admin sekarang dapat memperbaiki land."));
+        int finished = matches.forceFinishAll();
+        arenas.disableAll();
+        player.sendMessage(TextUtil.component("&8[&bVelioraWar&8] &eMaintenance aktif. &f" + finished
+                + " &epemain dipulangkan dengan inventory aman."));
+    }
+
+    private boolean ownerOnly(String sub, String[] args) {
+        if (sub.equals("enable") || sub.equals("disable") || sub.equals("claim") || sub.equals("redefine")) return true;
+        return sub.equals("delete") && args.length > 1 && args[1].equalsIgnoreCase("land");
     }
 
     private void info(Player player, String[] args) {

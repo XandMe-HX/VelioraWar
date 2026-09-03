@@ -19,6 +19,7 @@ import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -257,9 +258,12 @@ public final class MatchManager {
                     return;
                 }
                 if (remaining <= 3) {
-                    forEach(match, player -> player.showTitle(Title.title(
-                            TextUtil.component("&e&l" + remaining), Component.empty(),
-                            Title.Times.times(Duration.ZERO, Duration.ofMillis(900), Duration.ofMillis(100)))));
+                    forEach(match, player -> {
+                        player.showTitle(Title.title(TextUtil.component("&e&l" + remaining), Component.empty(),
+                                Title.Times.times(Duration.ZERO, Duration.ofMillis(900), Duration.ofMillis(100))));
+                        playConfiguredSound(player, "match.countdown-sound", Sound.BLOCK_NOTE_BLOCK_HAT,
+                                0.8F, 1.0F + ((3 - remaining) * 0.2F));
+                    });
                 }
                 match.remainingSeconds(remaining - 1);
             }
@@ -273,6 +277,7 @@ public final class MatchManager {
             player.setGameMode(GameMode.SURVIVAL);
             loadouts.apply(player, match.mode());
             player.showTitle(Title.title(TextUtil.component("&a&lGO!"), Component.empty()));
+            playConfiguredSound(player, "match.start-sound", Sound.ENTITY_PLAYER_LEVELUP, 1.0F, 1.15F);
             messages.send(player, "match-start");
         });
         match.remainingSeconds(configs.config().getInt("match.duration-seconds", 600));
@@ -546,6 +551,18 @@ public final class MatchManager {
         return matchesByPlayer.containsKey(player) || allModePlayers.containsKey(player) || queue.contains(player);
     }
 
+    /** A participant physically controlled by a match. Queued players are deliberately excluded. */
+    public boolean isParticipant(UUID player) {
+        return matchesByPlayer.containsKey(player) || allModePlayers.containsKey(player);
+    }
+
+    /** Block-changing gameplay is legal only after the duel has actually started, or in All Mode. */
+    public boolean mayModifyArena(UUID player) {
+        if (allModePlayers.containsKey(player)) return true;
+        Match match = matchesByPlayer.get(player);
+        return match != null && match.arena().state() == ArenaState.ACTIVE && !match.eliminated(player);
+    }
+
     public boolean isInArena(UUID player, Arena arena) {
         Match match = matchesByPlayer.get(player);
         return (match != null && match.arena().id().equals(arena.id()))
@@ -604,6 +621,45 @@ public final class MatchManager {
         combatUntil.clear();
         spawnProtectionUntil.clear();
         duelRequests.clear();
+    }
+
+    /** Ends every activity immediately for maintenance without recording a fake win/loss. */
+    public int forceFinishAll() {
+        Set<UUID> affected = new HashSet<>();
+        for (Match match : new ArrayList<>(matchesByArena.values())) {
+            match.cancelTasks();
+            affected.addAll(match.players());
+            temporaryBlocks.restore(match.arena());
+            match.arena().state(ArenaState.DISABLED);
+        }
+        affected.addAll(allModePlayers.keySet());
+        for (UUID uuid : affected) {
+            queue.remove(uuid);
+            combatUntil.remove(uuid);
+            spawnProtectionUntil.remove(uuid);
+            Player player = Bukkit.getPlayer(uuid);
+            if (player != null) {
+                inventories.restore(player, configs.stay());
+                player.sendMessage(TextUtil.component("&8[&bVelioraWar&8] &ePertandingan dihentikan karena maintenance."));
+            }
+        }
+        matchesByArena.clear();
+        matchesByPlayer.clear();
+        allModePlayers.clear();
+        queue.clear();
+        duelRequests.clear();
+        return affected.size();
+    }
+
+    private void playConfiguredSound(Player player, String path, Sound fallback, float volume, float pitch) {
+        String configured = configs.config().getString(path, fallback.name());
+        Sound sound;
+        try {
+            sound = Sound.valueOf(configured.toUpperCase(java.util.Locale.ROOT));
+        } catch (IllegalArgumentException exception) {
+            sound = fallback;
+        }
+        player.playSound(player.getLocation(), sound, volume, pitch);
     }
 
     private void forEach(Match match, java.util.function.Consumer<Player> action) {
