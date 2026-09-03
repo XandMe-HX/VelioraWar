@@ -60,7 +60,7 @@ public final class DamageListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
     public void onPvp(EntityDamageByEntityEvent event) {
         if (event.getEntity() instanceof EnderCrystal crystal) {
             Player owner = attacker(event);
@@ -86,6 +86,9 @@ public final class DamageListener implements Listener {
             event.setCancelled(true);
             return;
         }
+        // VelioraWar owns PvP inside an active match. Region plugins such as RedProtect may
+        // protect the land globally, but their cancellation must not disable a valid duel.
+        event.setCancelled(false);
         matches.recordDamage(attacker, victim, event.getFinalDamage());
         matches.tagCombat(attacker);
         matches.tagCombat(victim);

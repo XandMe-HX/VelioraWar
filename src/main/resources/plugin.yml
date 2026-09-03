@@ -1,5 +1,5 @@
 name: VelioraWar
-version: '1.1.0'
+version: '1.1.1'
 main: id.veliora.war.VelioraWarPlugin
 api-version: '1.21'
 author: XandMe
@@ -8,6 +8,7 @@ website: https://github.com/XandMe-HX/VelioraWar
 
 softdepend:
   - VelioraSuite
+  - RedProtect
 
 commands:
   vgwar:
