@@ -49,6 +49,14 @@ public final class QueueManager {
         queues.clear();
     }
 
+    public java.util.List<QueueEntry> entries() {
+        return queues.values().stream().flatMap(Deque::stream).toList();
+    }
+
+    public int count(MatchMode mode, MatchSize size) {
+        return queues.getOrDefault(key(mode, size), new ArrayDeque<>()).size();
+    }
+
     private String key(MatchMode mode, MatchSize size) {
         return mode.id() + ':' + size.id();
     }

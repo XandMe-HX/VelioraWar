@@ -55,6 +55,7 @@ all-mode:
   spawn-protection-seconds: 5
 
 queue:
+  wait-timeout-seconds: 60
   # Masukkan pemain ke antrean saat semua arena yang cocok sedang dipakai
   enabled: true
   # Batas antrean per kombinasi mode dan ukuran

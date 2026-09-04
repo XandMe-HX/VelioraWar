@@ -53,6 +53,7 @@ public final class MatchManager {
     private final Map<UUID, Long> spawnProtectionUntil = new HashMap<>();
     private final Map<UUID, DuelRequest> duelRequests = new HashMap<>();
 
+    private final org.bukkit.scheduler.BukkitTask queueTask;
     private record DuelRequest(UUID challenger, MatchMode mode, long expiresAt) { }
 
     public MatchManager(VelioraWarPlugin plugin, ConfigManager configs, ArenaManager arenas,
@@ -68,6 +69,7 @@ public final class MatchManager {
         this.temporaryBlocks = temporaryBlocks;
         this.cooldowns = cooldowns;
         this.playerData = playerData;
+        queueTask = Bukkit.getScheduler().runTaskTimer(plugin, this::tickQueue, 20L, 20L);
     }
 
     public boolean joinTeam(Player player, MatchMode mode, MatchSize size, MatchTeam team) {
@@ -104,6 +106,18 @@ public final class MatchManager {
             return false;
         }
 
+        if (allowQueue) {
+            if (size == MatchSize.UNLIMITED || mode == MatchMode.ALL_MODE) return false;
+            int position = queue.enqueue(player.getUniqueId(), mode, size, team,
+                    configs.config().getInt("queue.max-size", 100));
+            if (position < 0) { messages.send(player, "queue-full"); return false; }
+            player.sendMessage(TextUtil.component("&eMenunggu peserta &f" + mode.id() + " " + size.id()
+                    + "&e. Belum masuk arena. Batal otomatis dalam &f" + queueTimeoutSeconds()
+                    + " detik&e. &f/vgwar leave &euntuk batal."));
+            processQueue(mode, size);
+            return true;
+        }
+
         Match match = matchesByArena.values().stream()
                 .filter(candidate -> candidate.mode() == mode && candidate.size() == size)
                 .filter(candidate -> candidate.arena().state() == ArenaState.PREPARING)
@@ -136,6 +150,7 @@ public final class MatchManager {
         }
         if (!inventories.backup(player)) {
             match.remove(player.getUniqueId());
+            if (match.players().isEmpty()) destroyWaitingMatch(match);
             messages.send(player, "already-playing");
             return false;
         }
@@ -434,6 +449,13 @@ public final class MatchManager {
         } else if (match.arena().state() == ArenaState.COUNTDOWN && !match.ready()) {
             match.cancelTasks();
             match.arena().state(ArenaState.PREPARING);
+            for (UUID remaining : new ArrayList<>(match.players())) {
+                Player other = Bukkit.getPlayer(remaining);
+                if (other != null) {
+                    other.sendMessage(TextUtil.component("&ePertandingan batal karena peserta keluar sebelum mulai."));
+                    leave(other, true);
+                }
+            }
         }
     }
 
@@ -487,12 +509,60 @@ public final class MatchManager {
     }
 
     private void processQueue(MatchMode mode, MatchSize size) {
-        int maximum = Math.min(8, size.playersPerTeam() * 2);
-        for (int index = 0; index < maximum; index++) {
-            Optional<QueueEntry> next = queue.poll(mode, size);
-            if (next.isEmpty()) return;
-            Player player = Bukkit.getPlayer(next.get().playerId());
-            if (player != null && player.isOnline()) joinAutomatic(player, mode, size);
+        if (!configs.config().getBoolean("settings.enabled", true) || size == MatchSize.UNLIMITED) return;
+        int required = size.playersPerTeam() * 2;
+        if (queue.count(mode, size) < required) return;
+        if (matchesByArena.values().stream().anyMatch(match -> match.mode() == mode
+                && match.size() == size && match.arena().state() == ArenaState.PREPARING)) return;
+        boolean free = arenas.all().stream().anyMatch(arena -> arena.enabled()
+                && arena.state() == ArenaState.WAITING && arena.mode() == mode
+                && !matchesByArena.containsKey(arena.id()));
+        if (!free) return;
+        var candidates = queue.entries().stream().filter(e -> e.mode() == mode && e.size() == size)
+                .limit(required).toList();
+        for (QueueEntry entry : candidates) {
+            Player player = Bukkit.getPlayer(entry.playerId());
+            if (player == null || !player.isOnline()
+                    || System.currentTimeMillis() - entry.joinedAt() >= queueTimeoutSeconds() * 1000L) {
+                queue.remove(entry.playerId());
+                if (player != null) player.sendMessage(TextUtil.component("&eAntrean PvP dibatalkan: waktu menunggu habis."));
+                return;
+            }
+        }
+        candidates.forEach(entry -> queue.remove(entry.playerId()));
+        java.util.List<Player> joined = new ArrayList<>();
+        for (int index = 0; index < candidates.size(); index++) {
+            Player player = Bukkit.getPlayer(candidates.get(index).playerId());
+            if (player == null || !joinTeam(player, mode, size,
+                    index % 2 == 0 ? MatchTeam.RED : MatchTeam.GREEN, false)) {
+                joined.forEach(member -> leave(member, false));
+                for (QueueEntry entry : candidates) {
+                    Player member = Bukkit.getPlayer(entry.playerId());
+                    if (member != null) member.sendMessage(TextUtil.component("&ePertandingan gagal disiapkan. Silakan antre kembali."));
+                }
+                return;
+            }
+            joined.add(player);
+        }
+    }
+
+    private int queueTimeoutSeconds() {
+        return Math.max(1, configs.config().getInt("queue.wait-timeout-seconds", 60));
+    }
+
+    private void tickQueue() {
+        long now = System.currentTimeMillis();
+        for (QueueEntry entry : queue.entries()) {
+            Player player = Bukkit.getPlayer(entry.playerId());
+            if (player == null || !player.isOnline() || now - entry.joinedAt() >= queueTimeoutSeconds() * 1000L) {
+                queue.remove(entry.playerId());
+                if (player != null) player.sendMessage(TextUtil.component("&eAntrean PvP dibatalkan: peserta belum lengkap dalam "
+                        + queueTimeoutSeconds() + " detik."));
+            }
+        }
+        java.util.Set<String> checked = new HashSet<>();
+        for (QueueEntry entry : queue.entries()) {
+            if (checked.add(entry.mode().id() + ":" + entry.size().id())) processQueue(entry.mode(), entry.size());
         }
     }
 
@@ -618,6 +688,8 @@ public final class MatchManager {
     }
 
     public void shutdown() {
+        queueTask.cancel();
+        queue.clear();
         for (Match match : new ArrayList<>(matchesByArena.values())) {
             match.cancelTasks();
             for (UUID uuid : match.players()) {

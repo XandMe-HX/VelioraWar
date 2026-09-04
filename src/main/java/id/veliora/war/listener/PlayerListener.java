@@ -247,7 +247,7 @@ public final class PlayerListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onInteract(PlayerInteractEvent event) {
         if (event.getClickedBlock() == null || event.getClickedBlock().getType() != Material.ENDER_CHEST) return;
-        if (matches.isPlaying(event.getPlayer().getUniqueId())) event.setCancelled(true);
+        if (matches.isParticipant(event.getPlayer().getUniqueId())) event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
