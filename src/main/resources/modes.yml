@@ -84,10 +84,10 @@ modes:
       - '&7Anchor dan crystal tetap memberi damage'
       - '&7tetapi tidak menghancurkan map'
     items:
-      helmet: {material: NETHERITE_HELMET, slot: HELMET, unbreakable: true, enchantments: [PROTECTION:4, BLAST_PROTECTION:4, UNBREAKING:3]}
-      chest: {material: NETHERITE_CHESTPLATE, slot: CHEST, unbreakable: true, enchantments: [PROTECTION:4, BLAST_PROTECTION:4, UNBREAKING:3]}
-      legs: {material: NETHERITE_LEGGINGS, slot: LEGS, unbreakable: true, enchantments: [PROTECTION:4, BLAST_PROTECTION:4, UNBREAKING:3]}
-      boots: {material: NETHERITE_BOOTS, slot: BOOTS, unbreakable: true, enchantments: [PROTECTION:4, BLAST_PROTECTION:4, FEATHER_FALLING:4, UNBREAKING:3]}
+      helmet: {material: NETHERITE_HELMET, slot: HELMET, unbreakable: true, enchantments: [PROTECTION:4, UNBREAKING:3]}
+      chest: {material: NETHERITE_CHESTPLATE, slot: CHEST, unbreakable: true, enchantments: [PROTECTION:4, UNBREAKING:3]}
+      legs: {material: NETHERITE_LEGGINGS, slot: LEGS, unbreakable: true, enchantments: [PROTECTION:4, UNBREAKING:3]}
+      boots: {material: NETHERITE_BOOTS, slot: BOOTS, unbreakable: true, enchantments: [PROTECTION:4, FEATHER_FALLING:4, UNBREAKING:3]}
       sword: {material: NETHERITE_SWORD, slot: 0, unbreakable: true, enchantments: [SHARPNESS:5, FIRE_ASPECT:2, UNBREAKING:3, MENDING:1]}
       axe: {material: NETHERITE_AXE, slot: 16, unbreakable: true, enchantments: [SHARPNESS:5, EFFICIENCY:5, UNBREAKING:3, MENDING:1]}
       shield: {material: SHIELD, slot: 17, unbreakable: true, enchantments: [UNBREAKING:3, MENDING:1]}
@@ -116,10 +116,10 @@ modes:
       - '&7Semua gaya PvP menjadi satu'
       - '&7Mode bebas dengan NPC refill'
     items:
-      helmet: {material: NETHERITE_HELMET, slot: HELMET, unbreakable: true, enchantments: [PROTECTION:4, BLAST_PROTECTION:4, UNBREAKING:3]}
-      chest: {material: NETHERITE_CHESTPLATE, slot: CHEST, unbreakable: true, enchantments: [PROTECTION:4, BLAST_PROTECTION:4, UNBREAKING:3]}
-      legs: {material: NETHERITE_LEGGINGS, slot: LEGS, unbreakable: true, enchantments: [PROTECTION:4, BLAST_PROTECTION:4, UNBREAKING:3]}
-      boots: {material: NETHERITE_BOOTS, slot: BOOTS, unbreakable: true, enchantments: [PROTECTION:4, BLAST_PROTECTION:4, FEATHER_FALLING:4, UNBREAKING:3]}
+      helmet: {material: NETHERITE_HELMET, slot: HELMET, unbreakable: true, enchantments: [PROTECTION:4, UNBREAKING:3]}
+      chest: {material: NETHERITE_CHESTPLATE, slot: CHEST, unbreakable: true, enchantments: [PROTECTION:4, UNBREAKING:3]}
+      legs: {material: NETHERITE_LEGGINGS, slot: LEGS, unbreakable: true, enchantments: [PROTECTION:4, UNBREAKING:3]}
+      boots: {material: NETHERITE_BOOTS, slot: BOOTS, unbreakable: true, enchantments: [PROTECTION:4, FEATHER_FALLING:4, UNBREAKING:3]}
       sword: {material: NETHERITE_SWORD, slot: 0, unbreakable: true, enchantments: [SHARPNESS:5, UNBREAKING:3]}
       mace: {material: MACE, slot: 1, unbreakable: true, enchantments: [DENSITY:5, WIND_BURST:3, UNBREAKING:3]}
       wind-charge: {material: WIND_CHARGE, amount: 64, slot: 8}

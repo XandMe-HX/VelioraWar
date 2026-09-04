@@ -33,6 +33,17 @@ public final class ConfigManager {
             File file = new File(plugin.getDataFolder(), name);
             if (!file.exists()) plugin.saveResource(name, false);
             YamlConfiguration loaded = YamlConfiguration.loadConfiguration(file);
+            if (name.equals("modes.yml") && !loaded.getBoolean("migration.armor-1-1-4", false)) {
+                try {
+                    java.nio.file.Files.copy(file.toPath(), file.toPath().resolveSibling(
+                            "modes-before-1.1.4-" + System.currentTimeMillis() + ".yml"));
+                    normalizeArmor(loaded);
+                    loaded.set("migration.armor-1-1-4", true);
+                    loaded.save(file);
+                } catch (IOException exception) {
+                    throw new IllegalStateException("Gagal backup/migrasi armor War", exception);
+                }
+            }
             try (InputStream input = plugin.getResource(name)) {
                 if (input != null) {
                     YamlConfiguration defaults = YamlConfiguration.loadConfiguration(
@@ -45,6 +56,20 @@ public final class ConfigManager {
                 plugin.getLogger().warning("Gagal menggabungkan default " + name + ": " + exception.getMessage());
             }
             custom.put(name, loaded);
+        }
+    }
+
+    public static void normalizeArmor(YamlConfiguration yaml) {
+        for (String mode : new String[]{"cpvp", "all_mode"}) {
+            ConfigurationSection items = yaml.getConfigurationSection("modes." + mode + ".items");
+            if (items == null) continue;
+            for (String key : items.getKeys(false)) {
+                String path = key + ".enchantments";
+                var enchants = items.getStringList(path);
+                boolean protection = enchants.stream().anyMatch(value -> value.toUpperCase(java.util.Locale.ROOT).startsWith("PROTECTION:"));
+                if (protection) items.set(path, enchants.stream()
+                        .filter(value -> !value.toUpperCase(java.util.Locale.ROOT).startsWith("BLAST_PROTECTION:")).toList());
+            }
         }
     }
 
