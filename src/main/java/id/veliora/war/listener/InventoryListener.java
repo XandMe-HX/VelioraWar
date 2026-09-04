@@ -90,7 +90,7 @@ public final class InventoryListener implements Listener {
             case "size" -> {
                 MatchMode mode = MatchMode.from(parts[1]).orElse(null);
                 MatchSize size = MatchSize.from(parts[2]).orElse(null);
-                if (mode != null && size != null) teams.open(player, mode, size);
+                if (mode != null && size != null) { player.closeInventory(); matches.joinAutomatic(player, mode, size); }
             }
             case "team" -> {
                 player.closeInventory();
@@ -112,13 +112,11 @@ public final class InventoryListener implements Listener {
             case "buy" -> buy(player, parts.length > 1 ? parts[1] : "");
             case "leave" -> {
                 player.closeInventory();
-                if (!matches.isAllMode(player.getUniqueId())) {
-                    player.sendMessage(TextUtil.component("&8[&bVelioraWar&8] &cKeluar dari GUI hanya tersedia di All Mode. Duel harus diselesaikan."));
-                } else if (matches.combatRemaining(player.getUniqueId()) > 0L) {
+                if (matches.isAllMode(player.getUniqueId()) && matches.combatRemaining(player.getUniqueId()) > 0L) {
                     long seconds = (matches.combatRemaining(player.getUniqueId()) + 999L) / 1000L;
                     player.sendMessage(TextUtil.component("&8[&bVelioraWar&8] &cTunggu " + seconds + " detik setelah combat sebelum keluar."));
                 } else {
-                    matches.leaveAllMode(player);
+                    matches.leave(player, true);
                 }
             }
             case "flag" -> toggleFlag(player, parts);
@@ -171,9 +169,9 @@ public final class InventoryListener implements Listener {
         player.closeInventory();
         player.sendMessage(TextUtil.component("&8&m---------------- &b&lPanduan VelioraWar &8&m----------------"));
         player.sendMessage(TextUtil.component("&f1. &7Pilih &bBuat Party&7, lalu pilih mode dan ukuran team."));
-        player.sendMessage(TextUtil.component("&f2. &7Masuk ke &cMerah &7atau &9Biru&7. Match mulai saat kedua team penuh."));
+        player.sendMessage(TextUtil.component("&f2. &7Team dibagi otomatis. Match mulai saat kedua team penuh."));
         player.sendMessage(TextUtil.component("&f3. &7Tunggu hitungan mundur; bergerak setelah tulisan GO."));
-        player.sendMessage(TextUtil.component("&f4. &7Saat war: command, teleport, dan keluar arena diblokir."));
+        player.sendMessage(TextUtil.component("&f4. &7Keluar: &f/vgwar leave&7. Duel aktif dihitung menyerah; All Mode menunggu combat selesai."));
     }
 
     private void buy(Player player, String id) {
