@@ -109,6 +109,7 @@ public final class VelioraWarPlugin extends JavaPlugin {
         configs.reload();
         arenaManager.reload();
         loadouts.reload();
+        matches.restartQueue();
         if (configs.config().getBoolean("features.native-refill-npc-enabled", false)) refillNpcs.spawnAll();
     }
 

@@ -72,7 +72,7 @@ public final class MatchManager {
     private final Map<UUID, Long> spawnProtectionUntil = new HashMap<>();
     private final Map<UUID, DuelRequest> duelRequests = new HashMap<>();
 
-    private final org.bukkit.scheduler.BukkitTask queueTask;
+    private org.bukkit.scheduler.BukkitTask queueTask;
     private record DuelRequest(UUID challenger, MatchMode mode, long expiresAt) { }
 
     public MatchManager(VelioraWarPlugin plugin, ConfigManager configs, ArenaManager arenas,
@@ -88,6 +88,11 @@ public final class MatchManager {
         this.temporaryBlocks = temporaryBlocks;
         this.cooldowns = cooldowns;
         this.playerData = playerData;
+        restartQueue();
+    }
+
+    public void restartQueue() {
+        if (queueTask != null) queueTask.cancel();
         queueTask = Bukkit.getScheduler().runTaskTimer(plugin, this::tickQueue, 20L, 20L);
     }
 
