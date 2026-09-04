@@ -74,6 +74,20 @@ public final class MatchManager {
         return joinTeam(player, mode, size, team, true);
     }
 
+    public boolean joinAutomatic(Player player, MatchMode mode, MatchSize size) {
+        Match candidate = matchesByArena.values().stream()
+                .filter(m -> m.mode() == mode && m.size() == size && m.arena().state() == ArenaState.PREPARING)
+                .filter(m -> m.hasSpace(MatchTeam.RED) || m.hasSpace(MatchTeam.GREEN)).findFirst().orElse(null);
+        MatchTeam team = MatchTeam.RED;
+        if (candidate != null) {
+            long red = candidate.players().stream().filter(id -> candidate.team(id) == MatchTeam.RED).count();
+            long green = candidate.players().stream().filter(id -> candidate.team(id) == MatchTeam.GREEN).count();
+            team = candidate.hasSpace(MatchTeam.GREEN) && (!candidate.hasSpace(MatchTeam.RED) || green < red) ? MatchTeam.GREEN : MatchTeam.RED;
+        }
+        player.sendMessage(TextUtil.component("&eKeluar: &f/vgwar leave &7(duel aktif = menyerah)."));
+        return joinTeam(player, mode, size, team);
+    }
+
     private boolean joinTeam(Player player, MatchMode mode, MatchSize size, MatchTeam team, boolean allowQueue) {
         if (!configs.config().getBoolean("settings.enabled", true)) {
             messages.send(player, "maintenance");
@@ -478,7 +492,7 @@ public final class MatchManager {
             Optional<QueueEntry> next = queue.poll(mode, size);
             if (next.isEmpty()) return;
             Player player = Bukkit.getPlayer(next.get().playerId());
-            if (player != null && player.isOnline()) joinTeam(player, mode, size, next.get().team(), false);
+            if (player != null && player.isOnline()) joinAutomatic(player, mode, size);
         }
     }
 

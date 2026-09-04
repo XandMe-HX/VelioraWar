@@ -124,12 +124,12 @@ public final class VgWarCommand implements CommandExecutor, TabCompleter {
             }
             return true;
         }
-        if (sub.equals("leave")) {
+        if (sub.equals("leave") || sub.equals("keluar")) {
             if (matches.isAllMode(player.getUniqueId())) {
                 long remaining = matches.combatRemaining(player.getUniqueId());
                 if (remaining > 0L) player.sendMessage(TextUtil.component("&8[&bVelioraWar&8] &cTunggu " + ((remaining + 999L) / 1000L) + " detik setelah combat sebelum keluar."));
                 else matches.leaveAllMode(player);
-            } else player.sendMessage(TextUtil.component("&8[&bVelioraWar&8] &c/vgwar leave hanya untuk All Mode."));
+            } else matches.leave(player, true);
             return true;
         }
         if (sub.equals("duel")) {

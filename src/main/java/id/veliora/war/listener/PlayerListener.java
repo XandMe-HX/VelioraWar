@@ -167,10 +167,11 @@ public final class PlayerListener implements Listener {
 
         // /vgwar leave hanya boleh dipakai di All Mode dan selalu menghormati combat-tag.
         String command = event.getMessage().trim().toLowerCase(java.util.Locale.ROOT);
+        if (command.equals("/vgwar")) return;
         if (command.equals("/vgwar leave") || command.equals("/vgwar keluar")) {
             event.setCancelled(true);
             if (!matches.isAllMode(player.getUniqueId())) {
-                player.sendMessage(id.veliora.war.util.TextUtil.component("&8[&bVelioraWar&8] &c/vgwar leave hanya untuk All Mode."));
+                matches.leave(player, true);
                 return;
             }
             long remaining = matches.combatRemaining(player.getUniqueId());
