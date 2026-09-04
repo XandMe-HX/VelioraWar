@@ -18,18 +18,16 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 
 public final class DamageListener implements Listener {
-    private record RecentBlast(java.util.UUID owner, Location location, long time) {}
     private final ArenaManager arenas;
     private final MatchManager matches;
     private final java.util.Map<java.util.UUID, java.util.UUID> crystalOwners = new java.util.HashMap<>();
-    private final java.util.Map<java.util.UUID, RecentBlast> anchorBlasts = new java.util.HashMap<>();
 
     public DamageListener(ArenaManager arenas, MatchManager matches) {
         this.arenas = arenas;
         this.matches = matches;
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
     public void onDamage(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof Player victim)) return;
         Arena regionArena = arenas.at(victim.getLocation()).orElse(null);
@@ -39,10 +37,7 @@ public final class DamageListener implements Listener {
             return;
         }
         if (activityArena == null) return;
-        if (event.getCause() == EntityDamageEvent.DamageCause.BLOCK_EXPLOSION && friendlyAnchorBlast(victim)) {
-            event.setCancelled(true);
-            return;
-        }
+        // A recent nearby anchor click is not proof of the source of this explosion.
         if (matches.isFrozen(victim.getUniqueId()) || matches.hasSpawnProtection(victim.getUniqueId())
                 || matches.eliminated(victim.getUniqueId())) {
             event.setCancelled(true);
@@ -52,19 +47,40 @@ public final class DamageListener implements Listener {
             event.setCancelled(true);
             return;
         }
-        if (event.getFinalDamage() > 0.0D) matches.tagCombat(victim);
         if ((event.getCause() == EntityDamageEvent.DamageCause.BLOCK_EXPLOSION
-                || event.getCause() == EntityDamageEvent.DamageCause.ENTITY_EXPLOSION)
-                && !activityArena.flag(ArenaFlag.EXPLOSION_DAMAGE)) {
-            event.setCancelled(true);
+                || event.getCause() == EntityDamageEvent.DamageCause.ENTITY_EXPLOSION)) {
+            boolean allowed = activityArena.flag(ArenaFlag.EXPLOSION_DAMAGE)
+                    && activityArena.flag(ArenaFlag.PVP)
+                    && activityArena.region().contains(victim.getLocation());
+            if (event instanceof EntityDamageByEntityEvent hit) {
+                Player source = attacker(hit);
+                if (source != null && (!matches.isInArena(source.getUniqueId(), activityArena)
+                        || matches.isFrozen(source.getUniqueId()) || matches.hasSpawnProtection(source.getUniqueId())
+                        || (!source.equals(victim) && matches.friendly(source, victim)))) allowed = false;
+                if (allowed && source != null && !source.equals(victim)) {
+                    matches.recordDamage(source, victim, event.getFinalDamage());
+                    matches.tagCombat(source);
+                }
+            }
+            event.setCancelled(!allowed);
         }
+        if (!event.isCancelled() && event.getFinalDamage() > 0.0D) matches.tagCombat(victim);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
     public void onPvp(EntityDamageByEntityEvent event) {
+        // Explosions are handled once in onDamage, with the same flag and self-damage rules.
+        if (event.getEntity() instanceof Player
+                && (event.getCause() == EntityDamageEvent.DamageCause.BLOCK_EXPLOSION
+                || event.getCause() == EntityDamageEvent.DamageCause.ENTITY_EXPLOSION)) return;
         if (event.getEntity() instanceof EnderCrystal crystal) {
             Player owner = attacker(event);
-            if (owner != null && matches.isPlaying(owner.getUniqueId())) crystalOwners.put(crystal.getUniqueId(), owner.getUniqueId());
+            if (!event.isCancelled() && owner != null && matches.isParticipant(owner.getUniqueId())) {
+                crystalOwners.put(crystal.getUniqueId(), owner.getUniqueId());
+                org.bukkit.Bukkit.getScheduler().runTaskLater(
+                        org.bukkit.plugin.java.JavaPlugin.getProvidingPlugin(getClass()),
+                        () -> crystalOwners.remove(crystal.getUniqueId()), 2L);
+            }
             return;
         }
         if (!(event.getEntity() instanceof Player victim)) return;
@@ -104,24 +120,11 @@ public final class DamageListener implements Listener {
         return null;
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onAnchorUse(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getClickedBlock() == null
-                || event.getClickedBlock().getType() != Material.RESPAWN_ANCHOR
-                || !matches.isPlaying(event.getPlayer().getUniqueId())) return;
-        anchorBlasts.put(event.getPlayer().getUniqueId(),
-                new RecentBlast(event.getPlayer().getUniqueId(), event.getClickedBlock().getLocation(), System.currentTimeMillis()));
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onHeal(org.bukkit.event.entity.EntityRegainHealthEvent event) {
+        if (event.getEntity() instanceof Player player && matches.isParticipant(player.getUniqueId())) {
+            matches.limitHealing(player, event);
+        }
     }
 
-    private boolean friendlyAnchorBlast(Player victim) {
-        long now = System.currentTimeMillis();
-        anchorBlasts.values().removeIf(blast -> now - blast.time() > 2500L);
-        for (RecentBlast blast : anchorBlasts.values()) {
-            if (blast.location().getWorld() != victim.getWorld()
-                    || blast.location().distanceSquared(victim.getLocation()) > 144.0D) continue;
-            Player owner = org.bukkit.Bukkit.getPlayer(blast.owner());
-            if (owner != null && matches.friendly(owner, victim)) return true;
-        }
-        return false;
-    }
 }

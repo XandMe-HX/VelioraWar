@@ -50,6 +50,25 @@ public final class MatchManager {
     private final Map<UUID, Arena> allModePlayers = new HashMap<>();
     private final Set<UUID> internalTeleports = new HashSet<>();
     private final Map<UUID, Long> combatUntil = new HashMap<>();
+    private final Map<UUID, Long> naturalHealAt = new HashMap<>();
+
+    public void limitHealing(Player player, org.bukkit.event.entity.EntityRegainHealthEvent event) {
+        if (event.getRegainReason() == org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason.CUSTOM
+                && configs.config().getBoolean("combat.block-custom-healing", true)) {
+            event.setCancelled(true);
+            return;
+        }
+        if (event.getRegainReason() != org.bukkit.event.entity.EntityRegainHealthEvent.RegainReason.SATIATED
+                || combatRemaining(player.getUniqueId()) <= 0) return;
+        long now = System.currentTimeMillis();
+        long interval = Math.max(0, configs.config().getLong("combat.natural-heal-interval-ms", 4000));
+        if (now - naturalHealAt.getOrDefault(player.getUniqueId(), 0L) < interval) {
+            event.setCancelled(true);
+        } else {
+            event.setAmount(Math.min(event.getAmount(), 1.0D));
+            naturalHealAt.put(player.getUniqueId(), now);
+        }
+    }
     private final Map<UUID, Long> spawnProtectionUntil = new HashMap<>();
     private final Map<UUID, DuelRequest> duelRequests = new HashMap<>();
 
@@ -419,6 +438,7 @@ public final class MatchManager {
     private void leaveInternal(Player player, boolean notify, boolean restoreInventory) {
         UUID uuid = player.getUniqueId();
         combatUntil.remove(uuid);
+        naturalHealAt.remove(uuid);
         boolean wasQueued = queue.contains(uuid);
         queue.remove(uuid);
         Arena allArena = allModePlayers.remove(uuid);
@@ -688,6 +708,7 @@ public final class MatchManager {
     }
 
     public void shutdown() {
+        naturalHealAt.clear();
         queueTask.cancel();
         queue.clear();
         for (Match match : new ArrayList<>(matchesByArena.values())) {

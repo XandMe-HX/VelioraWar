@@ -55,7 +55,7 @@ public final class InventoryManager {
         player.setLevel(0);
         player.setExp(0);
         player.setFoodLevel(20);
-        player.setSaturation(20);
+        player.setSaturation(5);
         player.setGameMode(GameMode.SURVIVAL);
         double maxHealth = player.getAttribute(Attribute.MAX_HEALTH) == null
                 ? 20.0 : player.getAttribute(Attribute.MAX_HEALTH).getValue();

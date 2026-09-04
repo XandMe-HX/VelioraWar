@@ -120,7 +120,9 @@ public final class InventoryListener implements Listener {
                 }
             }
             case "flag" -> toggleFlag(player, parts);
-            case "refill" -> claimRefill(player, parts[1]);
+            case "refill" -> org.bukkit.Bukkit.getScheduler().runTask(
+                    org.bukkit.plugin.java.JavaPlugin.getProvidingPlugin(getClass()),
+                    () -> { if (player.isOnline() && !player.isDead()) claimRefill(player, parts[1]); });
             default -> { }
         }
     }
@@ -160,9 +162,12 @@ public final class InventoryListener implements Listener {
             refill.open(player, arena);
             return;
         }
+        player.closeInventory();
         loadouts.apply(player, MatchMode.ALL_MODE);
         messages.send(player, "refill-ready");
-        refill.open(player, arena);
+        org.bukkit.Bukkit.getScheduler().runTask(
+                org.bukkit.plugin.java.JavaPlugin.getProvidingPlugin(getClass()),
+                () -> { if (player.isOnline()) player.updateInventory(); });
     }
 
     private void sendGuide(Player player) {

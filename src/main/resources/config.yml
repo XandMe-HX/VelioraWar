@@ -54,6 +54,10 @@ all-mode:
   # Pemain baru masuk All Mode aman dari damage selama beberapa detik.
   spawn-protection-seconds: 5
 
+combat:
+  block-custom-healing: true
+  natural-heal-interval-ms: 4000
+
 queue:
   wait-timeout-seconds: 60
   # Masukkan pemain ke antrean saat semua arena yang cocok sedang dipakai
