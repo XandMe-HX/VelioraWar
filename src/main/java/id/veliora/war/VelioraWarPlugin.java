@@ -20,6 +20,7 @@ import id.veliora.war.listener.InventoryListener;
 import id.veliora.war.listener.PlayerListener;
 import id.veliora.war.match.MatchManager;
 import id.veliora.war.npc.RefillNpcManager;
+import id.veliora.war.placeholder.VelioraWarPlaceholderExpansion;
 import id.veliora.war.protection.ExplosionProtection;
 import id.veliora.war.protection.RegionProtection;
 import id.veliora.war.protection.TemporaryBlockManager;
@@ -43,6 +44,7 @@ public final class VelioraWarPlugin extends JavaPlugin {
     private CooldownManager cooldowns;
     private MatchManager matches;
     private RefillNpcManager refillNpcs;
+    private VelioraWarPlaceholderExpansion placeholders;
 
     @Override
     public void onEnable() {
@@ -74,6 +76,10 @@ public final class VelioraWarPlugin extends JavaPlugin {
                 mainMenu, flagMenu, refillNpcs, matches, refillMenu));
 
         PluginManager plugins = getServer().getPluginManager();
+        if (plugins.isPluginEnabled("PlaceholderAPI")) {
+            placeholders = new VelioraWarPlaceholderExpansion(this);
+            if (placeholders.register()) getLogger().info("PlaceholderAPI VelioraWar terdaftar untuk ajLeaderboards.");
+        }
         plugins.registerEvents(new PlayerListener(this, configs, messages, matches, inventories,
                 cooldowns, refillNpcs, refillMenu), this);
         plugins.registerEvents(new BlockListener(configs, regions, matches, loadouts, temporaryBlocks), this);
@@ -95,6 +101,7 @@ public final class VelioraWarPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (placeholders != null) { placeholders.unregister(); placeholders = null; }
         if (matches != null) matches.shutdown();
         if (refillNpcs != null) refillNpcs.shutdown();
         if (temporaryBlocks != null && arenaManager != null) temporaryBlocks.restoreAll(arenaManager.all());
@@ -127,5 +134,9 @@ public final class VelioraWarPlugin extends JavaPlugin {
 
     public ArenaManager arenaManager() {
         return arenaManager;
+    }
+
+    public PlayerDataStorage playerData() {
+        return playerData;
     }
 }

@@ -279,6 +279,11 @@ public final class PlayerListener implements Listener {
         Player player = event.getPlayer();
         Arena arena = matches.arena(player.getUniqueId()).orElse(null);
         if (arena == null) return;
+        plugin.playerData().increment(player.getUniqueId(), "stats.deaths");
+        Player killer = player.getKiller();
+        if (killer != null && matches.arena(killer.getUniqueId()).orElse(null) == arena) {
+            plugin.playerData().increment(killer.getUniqueId(), "stats.kills");
+        }
         boolean keepInventory = arena.flag(ArenaFlag.KEEP_INVENTORY);
         event.setKeepInventory(keepInventory);
         if (keepInventory) {

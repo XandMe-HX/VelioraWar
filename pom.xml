@@ -6,7 +6,7 @@
 
     <groupId>id.veliora</groupId>
     <artifactId>VelioraWar</artifactId>
-    <version>1.1.5</version>
+    <version>1.1.6</version>
     <name>VelioraWar</name>
     <description>Optimized PvP arena minigame for Veliora Gardens</description>
 
@@ -21,9 +21,19 @@
             <id>papermc</id>
             <url>https://repo.papermc.io/repository/maven-public/</url>
         </repository>
+        <repository>
+            <id>placeholderapi</id>
+            <url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url>
+        </repository>
     </repositories>
 
     <dependencies>
+        <dependency>
+            <groupId>me.clip</groupId>
+            <artifactId>placeholderapi</artifactId>
+            <version>2.11.6</version>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
