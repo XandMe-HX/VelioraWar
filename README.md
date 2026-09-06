@@ -21,6 +21,16 @@ Plugin minigame PvP berbasis Paper untuk Veliora Gardens. Target utama saat ini 
 - Permission `veliorawar.owner` untuk land/enable/disable dan `veliorawar.admin` untuk operasional
 - Seluruh teks, GUI, loadout, cooldown, dan aturan utama dapat diubah lewat YAML
 
+## ajLeaderboards / PlaceholderAPI
+
+Saat PlaceholderAPI terpasang, VelioraWar otomatis mendaftarkan angka yang dapat dibaca ajLeaderboards:
+
+- `%veliorawar_wins%`, `%veliorawar_losses%`, `%veliorawar_draws%`, `%veliorawar_matches%`
+- `%veliorawar_winrate%`
+- `%veliorawar_kills%`, `%veliorawar_deaths%`, `%veliorawar_kd%`
+
+Contoh: `/ajleaderboards add %veliorawar_wins%`. Statistik kill/death mulai dihitung setelah pembaruan ini; win/loss/draw yang sudah tersimpan tetap terbaca.
+
 ## Build
 
 ```bash
